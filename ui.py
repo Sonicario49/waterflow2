@@ -4,14 +4,17 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Waterflow - Demo CSV", page_icon=None, layout="centered"
+    page_title="Waterflow - Demo CSV & OCR", page_icon=None, layout="centered"
 )
 
 st.title("Projet Waterflow - Panel de Test")
 
-
 X_TEST_PATH = "data/processed/X_test.csv"
 Y_TEST_PATH = "data/processed/y_test.csv"
+
+API_BASE_URL = "http://127.0.0.1:8000"
+URL_PREDICT = f"{API_BASE_URL}/predict"
+URL_OCR = f"{API_BASE_URL}/api/ocr/lab-report"
 
 
 @st.cache_data
@@ -36,10 +39,74 @@ df_test = load_real_test_data()
 if "current_features" not in st.session_state:
     st.session_state.current_features = [0.0] * 9
 
-if df_test is not None:
-    st.subheader("Génération des données")
-    col_btn1, col_btn2 = st.columns(2)
+st.subheader("Génération des données")
 
+uploaded_file = st.file_uploader(
+    "Importer une fiche laboratoire (Image ou PDF)",
+    type=["png", "jpg", "jpeg", "pdf"],
+)
+
+if uploaded_file is not None:
+    if st.button("Analyser le document via l'OCR", use_container_width=True):
+        try:
+            with st.spinner("Analyse du document en cours par l'API..."):
+                # Préparation du fichier multipart pour Requests
+                # uploaded_file.getvalue() lit les octets du fichier chargé
+                files = {
+                    "file": (
+                        uploaded_file.name,
+                        uploaded_file.getvalue(),
+                        uploaded_file.type,
+                    )
+                }
+                headers = {
+                    "X-API-Key": "votre_cle_client"
+                }  # Clé requise par le blueprint
+
+                response = requests.post(URL_OCR, headers=headers, files=files)
+
+            if response.status_code in [200, 206]:
+                ocr_result = response.json()
+                features_ocr = ocr_result["measurement"]["features"]
+
+                # Extraction ordonnée des 9 features attendues par les inputs numériques
+                # Les valeurs manquantes (null) du JSON sont converties en 0.0 par défaut
+                st.session_state.current_features = [
+                    float(features_ocr.get("ph") or 0.0),
+                    float(features_ocr.get("hardness") or 0.0),
+                    float(features_ocr.get("solids") or 0.0),
+                    float(features_ocr.get("chloramines") or 0.0),
+                    float(features_ocr.get("sulfate") or 0.0),
+                    float(features_ocr.get("conductivity") or 0.0),
+                    float(features_ocr.get("organic_carbon") or 0.0),
+                    float(features_ocr.get("trihalomethanes") or 0.0),
+                    float(features_ocr.get("turbidity") or 0.0),
+                ]
+
+                # Gestion des alertes s'il manque des données sur la fiche
+                if response.status_code == 206:
+                    st.warning(
+                        "Document lu partiellement ! Certains champs requis n'ont pas été trouvés sur la fiche."
+                    )
+                    for warning in ocr_result.get("warnings", []):
+                        st.caption(f"{warning}")
+                else:
+                    st.success("Fiche analysée avec succès !")
+
+            else:
+                st.error(
+                    f"Erreur lors de l'analyse OCR ({response.status_code}) : {response.text}"
+                )
+
+        except requests.exceptions.ConnectionError:
+            st.error(
+                "Impossible de joindre l'API Flask. Vérifiez qu'elle tourne sur le port 8000."
+            )
+
+st.caption("Ou utilisez les échantillons du jeu de test :")
+col_btn1, col_btn2 = st.columns(2)
+
+if df_test is not None:
     with col_btn1:
         if st.button("Échantillon Aléatoire", use_container_width=True):
             sample = df_test.sample(n=1).iloc[0]
@@ -68,7 +135,7 @@ if df_test is not None:
                     "Aucune ligne avec Potability = 1 présente dans le fichier."
                 )
 
-    st.divider()
+st.divider()
 
 st.subheader("Valeurs des caractéristiques (scalées)")
 
@@ -100,6 +167,7 @@ with col3:
 
 st.divider()
 
+# ─── PRÉDICTION FINAL ───
 if st.button(
     "Lancer la prédiction API", type="primary", use_container_width=True
 ):
@@ -118,11 +186,9 @@ if st.button(
         ]
     }
 
-    URL_API = "http://127.0.0.1:8000/predict"
-
     try:
         with st.spinner("Requête en cours vers l'API Flask..."):
-            response = requests.post(URL_API, json=payload)
+            response = requests.post(URL_PREDICT, json=payload)
 
         if response.status_code == 200:
             result = response.json()
@@ -133,7 +199,7 @@ if st.button(
             threshold = result.get("decision_threshold_used", 0.5)
 
             if prediction == 1:
-                st.success(f"Présultat de l'API : {status}")
+                st.success(f"Résultat de l'API : {status}")
             else:
                 st.error(f"Résultat de l'API : {status}")
 
