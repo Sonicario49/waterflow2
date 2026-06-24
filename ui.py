@@ -8,15 +8,73 @@ st.set_page_config(
     page_title="Waterflow - Demo CSV & OCR", page_icon=None, layout="centered"
 )
 
+API_BASE_URL = "http://127.0.0.1:8000"
+URL_LOGIN = f"{API_BASE_URL}/api/login"
+URL_PREDICT = f"{API_BASE_URL}/predict"
+URL_OCR = f"{API_BASE_URL}/api/ocr/lab-report"
+
+# ──────────────────────────────────────────────────────────────────────────────
+# GESTION DE LA SESSION DE CONNEXION
+# ──────────────────────────────────────────────────────────────────────────────
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.user_id = None
+    st.session_state.username = None
+    st.session_state.api_key = None
+
+if not st.session_state.logged_in:
+    st.title("🔐 Connexion au Portail Waterflow")
+    st.write("Veuillez vous authentifier pour accéder au panel de test environnemental.")
+
+    with st.form("login_form"):
+        user_id_input = st.number_input("ID Utilisateur (Client)", min_value=1, step=1, value=1)
+        api_key_input = st.text_input("Clé API Secrète", type="password")
+        submit_login = st.form_submit_button("Se connecter", type="primary")
+
+        if submit_login:
+            if not api_key_input:
+                st.error("Veuillez saisir votre clé API.")
+            else:
+                try:
+                    # Appel de la nouvelle route Flask
+                    response = requests.post(URL_LOGIN, json={
+                        "user_id": user_id_input,
+                        "api_key": api_key_input
+                    })
+
+                    if response.status_code == 200:
+                        res_data = response.json()
+                        st.session_state.logged_in = True
+                        st.session_state.user_id = res_data["user_id"]
+                        st.session_state.username = res_data["username"]
+                        st.session_state.api_key = api_key_input  # Stockée pour les appels OCR
+                        st.rerun()  # Recharge la page pour afficher le panel
+                    else:
+                        st.error("❌ ID ou Clé API incorrecte.")
+                except requests.exceptions.ConnectionError:
+                    st.error("L'API Flask ne répond pas sur le port 8000. Lancez app.py d'abord.")
+    st.stop()
+
+# ──────────────────────────────────────────────────────────────────────────────
+# ACCÈS AUTORISÉ : LE PANEL DE TEST COMMENCE ICI
+# ──────────────────────────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.write(f"👤 **Utilisateur :** {st.session_state.username}")
+    st.write(f"🆔 **ID Client :** {st.session_state.user_id}")
+    if st.button("Se déconnecter", type="secondary"):
+        st.session_state.logged_in = False
+        st.session_state.user_id = None
+        st.session_state.username = None
+        st.session_state.api_key = None
+        st.rerun()
+
 st.title("Projet Waterflow - Panel de Test")
+st.caption(f"Session active pour le laboratoire : {st.session_state.username}")
 
 X_TEST_PATH = "data/processed/X_test.csv"
 Y_TEST_PATH = "data/processed/y_test.csv"
 MEAN_FEATURES_PATH = "mean_features.json"
-
-API_BASE_URL = "http://127.0.0.1:8000"
-URL_PREDICT = f"{API_BASE_URL}/predict"
-URL_OCR = f"{API_BASE_URL}/api/ocr/lab-report"
 
 
 @st.cache_data
@@ -29,9 +87,7 @@ def load_real_test_data():
 
     X_df = pd.read_csv(X_TEST_PATH)
     y_df = pd.read_csv(Y_TEST_PATH)
-
     y_df.columns = ["Potability"]
-
     combined_df = pd.concat([X_df, y_df], axis=1)
     return combined_df
 
@@ -67,7 +123,7 @@ if uploaded_file is not None:
                         uploaded_file.type,
                     )
                 }
-                headers = {"X-API-Key": "votre_cle_client"}
+                headers = {"X-API-Key": st.session_state.api_key}
 
                 response = requests.post(URL_OCR, headers=headers, files=files)
 
@@ -195,7 +251,6 @@ with col3:
 
 st.divider()
 
-# ─── PRÉDICTION FINALE ───
 if st.button(
     "Lancer la prédiction API", type="primary", use_container_width=True
 ):

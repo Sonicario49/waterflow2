@@ -6,6 +6,7 @@ Modules : Prédiction (existant) + OCR (nouveau)
 import mlflow.xgboost
 import numpy as np
 from flask import Flask, jsonify, request
+from data.db.WaterFlowDB import WaterFlowDB
 
 # ── Import du Blueprint OCR ──────────────────────────────
 from ocr_api import ocr_bp
@@ -38,6 +39,35 @@ except Exception as e:
 # Routes existantes (inchangées)
 # ──────────────────────────────────────────────
 
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    if not data or "user_id" not in data or "api_key" not in data:
+        return jsonify({"error": "ID utilisateur et Clé API requis"}), 400
+
+    try:
+        user_id = int(data["user_id"])
+        api_key = data["api_key"]
+
+        db = WaterFlowDB()
+        all_users = db.get_users()
+        db.close()
+
+        matched_user = next((u for u in all_users if u[0] == user_id and u[2] == api_key), None)
+
+        if matched_user:
+            return jsonify({
+                "authenticated": True,
+                "user_id": matched_user[0],
+                "username": matched_user[1],
+                "right": matched_user[3]
+            }), 200
+        else:
+            return jsonify({"authenticated": False, "error": "Identifiants invalides"}), 401
+
+    except Exception as e:
+        return jsonify({"error": f"Erreur serveur : {str(e)}"}), 500
+    
 @app.route("/health", methods=["GET"])
 def health():
     """Vérifier que l'API et le modèle sont opérationnels."""
