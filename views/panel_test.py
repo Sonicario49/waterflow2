@@ -10,16 +10,6 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.error(" Accès refusé. Vous devez d'abord vous connecter sur la page d'accueil.")
     st.markdown("[Aller à la page de connexion](/)")
     st.stop()
-
-with st.sidebar:
-    st.write(f"**Utilisateur :** {st.session_state.username}")
-    st.write(f"**ID Client :** {st.session_state.user_id}")
-    if st.button("Se déconnecter", type="secondary"):
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
-        st.session_state.username = None
-        st.session_state.api_key = None
-        st.switch_page("ui.py")
         
 st.title("Projet Waterflow - Panel de Test")
 st.caption(f"Session active pour le laboratoire : {st.session_state.username}")

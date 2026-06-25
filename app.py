@@ -1,6 +1,8 @@
 import mlflow.xgboost
 import numpy as np
 import functools
+import secrets
+import hashlib
 from flask import Flask, jsonify, request
 from data.db.WaterFlowDB import WaterFlowDB
 
@@ -13,13 +15,20 @@ app.register_blueprint(ocr_bp)
 # ──────────────────────────────────────────────
 # Système d'Authentification par Clé API (Headers)
 # ──────────────────────────────────────────────
+def generate_api_key():
+    return secrets.token_hex(32)
+
+def hash_key(k):
+    return hashlib.sha256(k.encode()).hexdigest()
 
 def require_api_key(f):
 	@functools.wraps(f)
 	def decorated(*args, **kwargs):
-		api_key = request.headers.get("X-API-Key")
-		if not api_key:
-			return jsonify({"error": "Cle API manquante dans les en-têtes (X-API-Key)"}), 401
+		api_key_recue = request.headers.get("X-API-Key")
+		if not api_key_recue:
+			return jsonify({"error": "Cle API manquante"}), 401
+
+		hash_api_key_recue = hashlib.sha256(api_key_recue.encode()).hexdigest()
 		
 		try:
 			db = WaterFlowDB()
@@ -28,7 +37,7 @@ def require_api_key(f):
 			
 			# On cherche l'utilisateur qui possède cette clé API
 			# Structure u : (user_id, username, api_key, right, ...)
-			matched_user = next((u for u in all_users if u[2] == api_key), None)
+			matched_user = next((u for u in all_users if u[2] == hash_api_key_recue), None)
 			
 			if not matched_user:
 				return jsonify({"error": "Cle API invalide"}), 401
@@ -70,9 +79,11 @@ except Exception as e:
 @app.route("/api/login", methods=["POST"])
 def login():
     """Vérifie la clé API reçue dans le header et renvoie les infos utilisateur."""
-    api_key = request.headers.get("X-API-Key")
-    if not api_key:
-        return jsonify({"error": "Cle API manquante dans les en-têtes (X-API-Key)"}), 401
+    api_key_recue = request.headers.get("X-API-Key")
+    if not api_key_recue:
+        return jsonify({"error": "Cle API manquante"}), 401
+    
+    hash_api_key_recue = hashlib.sha256(api_key_recue.encode()).hexdigest()
 
     try:
         db = WaterFlowDB()
@@ -80,7 +91,7 @@ def login():
         db.close()
 
         # Recherche de l'utilisateur uniquement via sa clé API
-        matched_user = next((u for u in all_users if u[2] == api_key), None)
+        matched_user = next((u for u in all_users if u[2] == hash_api_key_recue), None)
 
         if matched_user:
             return jsonify({
@@ -197,9 +208,76 @@ def rgpd_info(current_client):
 		"regle_conservation": "Les mesures de prelevements anonymisees sont conservees 5 ans. Vos donnees d'identification sont supprimees a la cloture du compte."
 	}), 200
 
+@app.route("/api/clients", methods=["POST"])
+@require_api_key
+def create_client(current_client):
+    """Cree un client en stockant le hash de sa cle API."""
+    if current_client["role"] != "Admin":
+        return jsonify({"error": "Acces refuse. Cette action est reservee aux administrateurs."}), 403
 
-# NOTE : Pour la route OCR (POST /api/ocr/lab-report), appliquez le décorateur @require_api_key 
-# directement à l'intérieur de votre fichier `ocr_api.py` sur la fonction correspondante.
+    data = request.get_json()
+    if not data or "username" not in data:
+        return jsonify({"error": "Format attendu : {'username': 'nom_du_client'}"}), 400
+
+    username = data["username"]
+    role = data.get("role", "Client")
+
+    try:
+        plain_key = generate_api_key()
+        
+        hashed_key = hash_key(plain_key)
+
+        db = WaterFlowDB()
+        db.add_user(username=username, api_key=hashed_key, right=role)
+        
+        all_users = db.get_users()
+        db.close()
+
+        new_user = next((u for u in all_users if u[2] == hashed_key), None)
+        user_id = new_user[0] if new_user else "Inconnu"
+
+        return jsonify({
+            "message": "Client cree avec succes.",
+            "client": {
+                "id": user_id,
+                "username": username,
+                "role": role,
+                "api_key_plain": plain_key
+            }
+        }), 201
+
+    except Exception as e:
+        return jsonify({"error": f"Erreur lors de la creation du client : {str(e)}"}), 500
+
+
+@app.route("/api/clients", methods=["GET"])
+@require_api_key
+def list_clients(current_client):
+    """Recupere la liste de tous les clients (Affiche les hashs)."""
+    if current_client["role"] != "Admin":
+        return jsonify({"error": "Acces refuse. Cette action est reservee aux administrateurs."}), 403
+
+    try:
+        db = WaterFlowDB()
+        all_users = db.get_users()
+        db.close()
+
+        clients_list = []
+        for row in all_users:
+            clients_list.append({
+                "id": row[0],
+                "username": row[1],
+                "api_key_hash": row[2],
+                "role": row[3]
+            })
+
+        return jsonify({
+            "total_clients": len(clients_list),
+            "clients": clients_list
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Erreur lors de la recuperation des clients : {str(e)}"}), 500
 
 @app.route("/health", methods=["GET"])
 def health():
