@@ -10,16 +10,6 @@ if "logged_in" not in st.session_state or not st.session_state.logged_in:
     st.markdown("[Aller à la page de connexion](/)")
     st.stop()
 
-with st.sidebar:
-    st.write(f"**Utilisateur :** {st.session_state.username}")
-    st.write(f"**ID Client :** {st.session_state.user_id}")
-    if st.button("Se déconnecter", type="secondary", use_container_width=True):
-        st.session_state.logged_in = False
-        st.session_state.user_id = None
-        st.session_state.username = None
-        st.session_state.api_key = None
-        st.switch_page("ui.py")
-
 # ── 2. CONSTANTES & APPEL API ─────────────────────────────────────────
 API_BASE_URL = "http://127.0.0.1:8000"
 URL_HISTORY = f"{API_BASE_URL}/api/measurements"

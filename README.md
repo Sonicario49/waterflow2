@@ -130,7 +130,10 @@ test rgpd:
 curl -X GET http://127.0.0.1:8000/api/me -H "X-API-Key: 12345"
 
 test ocr:
->curl -X POST http://127.0.0.1:8000/api/ocr/lab-report -H "X-API-Key: 12345" -F "file=@test_OCR.png"
+curl -X POST http://127.0.0.1:8000/api/ocr/lab-report -H "X-API-Key: 12345" -F "file=@test_OCR.png"
+
+test Creation Client
+curl -X POST http://127.0.0.1:8000/api/clients -H "X-API-Key: 33e38d21a0287a959ceb64a7fadc9cf1786a41c3234ef12cc0d0267c35ea3ef7" -H "Content-Type: application/json" -d "{\"username\": \"Laboratoire_Sud\", \"role\": \"Client\"}"
 
 ## Conclusion
 
