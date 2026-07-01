@@ -120,12 +120,16 @@ python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 test api :
 curl -X POST http://localhost:8000/api/ocr/lab-report -H "X-API-Key: votre_cle_client" -F "file=@test_OCR.png"
 
+curl -X POST http://localhost:8000/api/ocr/lab-report -H "X-API-Key: 0f443d0e145f5a4a5d29115ce1a924f658850351f519725d11cefb68abcbf21a" -F "file=@test_OCR.png"
+
 lancer Streamlit :
 python -m streamlit run ui.py
 
 voila pour tester des api :
 test prediction :
 curl -X POST http://127.0.0.1:8000/api/measurements -H "X-API-Key: 12345" -H "Content-Type: application/json" -d "{\"features\": [7.2, 200.5, 15000, 8.1, 320, 450, 15.2, 65.4, 3.5]}"
+
+curl -X POST http://127.0.0.1:8000/api/measurements -H "X-API-Key: 0f443d0e145f5a4a5d29115ce1a924f658850351f519725d11cefb68abcbf21a" -H "Content-Type: application/json" -d "{\"features\": [7.2, 200.5, 15000, 8.1, 320, 450, 15.2, 65.4, 3.5]}"
 
 Test historique :
 curl -X GET http://127.0.0.1:8000/api/measurements -H "X-API-Key: 12345"

@@ -7,3 +7,6 @@ numpy
 xgboost
 scikit-learn
 imbalanced-learn
+pytest
+pytest-cov
+httpx
