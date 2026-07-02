@@ -2,7 +2,7 @@ import hashlib
 import sqlite3
 
 class WaterFlowDB:
-    def __init__(self, db_name="data\\db\\waterflow.db"):
+    def __init__(self, db_name="data/db/waterflow.db"):
         self.conn = sqlite3.connect(db_name)
         self.cursor = self.conn.cursor()
         self.enable_foreign_keys()
