@@ -14,11 +14,7 @@ data/description/
 data/db/*.db
 mlflow.db
 mlflow_backup.db
+mlflow_data/
 *.md
-compute_means.py
-pile.py
-experiment.py
-init_admin.py
 waterflow2.bat
-static/
 test_OCR.png

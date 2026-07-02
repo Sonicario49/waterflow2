@@ -114,9 +114,6 @@ ensuite l'api avec :
 
 python -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
-(flask) python3 app.py
-
-
 test api :
 curl -X POST http://localhost:8000/api/ocr/lab-report -H "X-API-Key: <VOTRE_CLE_API>" -F "file=@test_OCR.png"
 
