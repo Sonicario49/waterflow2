@@ -1,5 +1,5 @@
 # Checklist d'audit — RNCP 37827 Développeur.se en IA
-## Compétences C9 à C14 (épreuves E3 et E4)
+## Compétences C9 à C19 (épreuves E3 et E4)
 
 > **Usage prévu** : ce fichier sert de grille d'audit pour Claude Code (ou tout autre agent) sur le dépôt `waterflow2`. Pour chaque critère, l'agent doit chercher une preuve concrète dans le code/dépôt (fichier, ligne, test qui passe, doc présente...) avant de cocher. Ne jamais cocher une case sur la seule base d'une intention déclarée — il faut une preuve exécutable ou documentaire.
 >
@@ -73,9 +73,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ---
 
-## E4 — Mise en situation (C14 uniquement pour ce périmètre)
-
-> Note : dans la grille officielle, E4 couvre C14 à C19. Ce fichier ne détaille que **C14**, à la demande explicite du candidat, le reste du projet ne portant que sur C9-C14.
+## E4 — Mise en situation (C14, C15, C16, C17, C18, C19)
 
 Contexte de l'épreuve : développement d'une application intégrant un service IA — analyse du besoin, conception, développement, tests, livraison.
 Livrable attendu : rapport professionnel individuel + soutenance orale avec démonstration.
@@ -87,6 +85,56 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] Chaque spécification fonctionnelle couvre le contexte, les scénarios d'utilisation et les critères de validation.
 - [x] Les objectifs d'accessibilité sont directement intégrés aux critères d'acceptation des user stories.
 - [x] Les objectifs d'accessibilité sont formulés en s'appuyant sur un standard d'accessibilité reconnu (WCAG, RGAA, etc.).
+
+### C15 — Concevoir le cadre technique de l'application
+
+- [x] Les spécifications techniques rédigées couvrent l'architecture de l'application, ses dépendances et son environnement d'exécution (langage de programmation, framework, outils, etc.).
+- [ ] Les éventuels services (PaaS, SaaS, etc.) et prestataires ayant une démarche éco-responsable sont favorisés lors des choix techniques.
+- [ ] Les flux de données impliqués dans l'application sont représentés par un diagramme de flux de données.
+- [x] La preuve de concept est accessible et fonctionnelle en environnement de pré-production.
+- [ ] La conclusion à l'issue de la preuve de concept donne un avis précis permettant une prise de décision sur la poursuite du projet.
+
+### C16 — Coordonner la réalisation technique (conduite agile / MLOps)
+
+- [ ] Les cycles, les étapes de chaque cycle, les rôles, les rituels et les outils de la méthode agile appliquée sont respectés dans sa mise en place et tout au long du projet.
+- [ ] Les outils de pilotage (tableau kanban, burndown chart, backlog, etc.) sont disponibles dans les conditions prévues par la méthode appliquée.
+- [ ] Les objectifs et les modalités des rituels sont partagés à toutes les parties prenantes et rappelés si besoin.
+- [ ] Les éléments de pilotage sont rendus accessibles à toutes les parties du projet et ce tout au long du projet, en accord avec les recommandations de la méthode de gestion de projet appliquée.
+
+### C17 — Développer les composants techniques et les interfaces
+
+- [x] L'environnement de développement installé respecte les spécifications techniques du projet.
+- [x] Les interfaces sont intégrées et respectent les maquettes.
+- [x] Les comportements des composants d'interface (validation formulaire, animations, etc.) et la navigation respectent les spécifications fonctionnelles.
+- [x] Les composants métier sont développés et fonctionnent comme prévu par les spécifications techniques et fonctionnelles.
+- [x] La gestion des droits d'accès à l'application ou à certains espaces de l'application est développée et respecte les spécifications fonctionnelles.
+- [x] Les flux de données sont intégrés dans le respect des spécifications techniques et fonctionnelles.
+- [ ] Les développements sont réalisés dans le respect des bonnes pratiques d'éco-conception d'une application (recommandations éco-index ou Green IT par exemple).
+- [x] Les préconisations du top 10 OWASP sont implémentées dans l'application quand nécessaire.
+- [x] Des tests d'intégration ou unitaires couvrent au moins les composants métier et la gestion des accès.
+- [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant.
+- [x] La documentation technique couvre l'installation de l'environnement de développement, l'architecture applicative, les dépendances, l'exécution des tests.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+
+### C18 — Automatiser les phases de tests du code source (intégration continue)
+
+- [ ] La documentation pour l'utilisation de la chaîne couvre les outils, toutes les étapes, les tâches et tous les déclencheurs de la chaîne.
+- [x] Un outil de configuration et d'exécution d'une chaîne d'intégration continue est sélectionné de façon cohérente avec l'environnement technique du projet.
+- [x] La chaîne intègre toutes les étapes nécessaires et préalables à l'exécution des tests de l'application (build, configurations…).
+- [x] La chaîne exécute les tests de l'application disponibles lors de son déclenchement.
+- [x] Les configurations sont versionnées avec les sources du projet d'application, sur un dépôt Git distant.
+- [ ] La documentation de la chaîne d'intégration continue couvre la procédure d'installation, de configuration et de test de la chaîne.
+- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+
+### C19 — Créer un processus de livraison continue de l'application
+
+- [ ] La documentation pour l'utilisation de la chaîne couvre toutes les étapes de la chaîne, les tâches et tous les déclencheurs disponibles.
+- [x] Le ou les fichiers de configuration de la chaîne sont correctement reconnus et exécutés par le système.
+- [x] La ou les étapes de packaging (compilation, minification, build de containers, etc.) de l'application sont intégrées à la chaîne et s'exécutent sans erreur.
+- [ ] L'étape de livraison (pull request par exemple) est intégrée et exécutée une fois la ou les étapes de packaging validées.
+- [x] Les sources de la chaîne sont versionnées et accessibles depuis le dépôt Git distant du projet d'application.
+- [ ] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
+- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ---
 
@@ -101,4 +149,10 @@ Pour chaque case ci-dessus :
    - Une doc doit couvrir tous les sous-points listés dans le critère, pas juste le sujet en général.
 3. **Ne pas cocher une case sur la base d'une déclaration d'intention** (ex. un commentaire "TODO: ajouter les tests" ne compte pas).
 4. Pour chaque case non cochée, indiquer précisément **quel fichier créer ou modifier** pour la satisfaire.
-5. Produire en sortie un tableau récapitulatif par compétence (C9 à C14) avec le statut global : **Acquis / Non acquis / Partiellement acquis**, en listant les cases encore ouvertes pour chaque compétence partiellement acquise.
+5. Produire en sortie un tableau récapitulatif par compétence (C9 à C19) avec le statut global : **Acquis / Non acquis / Partiellement acquis**, en listant les cases encore ouvertes pour chaque compétence partiellement acquise.
+
+### Points de vigilance déjà identifiés sur ce projet (à vérifier en priorité)
+
+- **C9 / C12** : `tests/test_pipeline.py::test_health_endpoint` (et potentiellement d'autres tests s'ils sont exécutés en premier dans la session pytest) échoue de façon reproductible : le mock de `mlflow.xgboost.load_model` dans `tests/conftest.py` ne s'applique pas de manière fiable selon l'ordre d'exécution des fixtures — le vrai serveur MLflow (`127.0.0.1:5000`) est alors contacté et la connexion échoue, laissant `app.state.model = None`. Ce comportement invalide le critère "les tests s'exécutent sans bug" tant qu'il n'est pas corrigé.
+- **C13 / C18 / C19** : vérifier si le pipeline `.github/workflows/ci.yml` couvre bien une étape de **packaging** (build d'image Docker ou équivalent) et une étape de **déploiement/livraison** (C13, C19) — au moment de la dernière analyse, seules les étapes de validation des données et d'entraînement/validation du modèle avaient été confirmées.
+- **`requirements.txt`** : vérifier que toutes les dépendances réellement utilisées par le code (`fastapi`, `uvicorn`, `python-multipart`, `pandas`, etc.) y figurent — des imports utilisés en pratique en étaient absents lors de la dernière analyse.
