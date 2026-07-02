@@ -17,10 +17,15 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from data.db.WaterFlowDB import WaterFlowDB
 from .auth import UserInfo, get_current_user, require_role
 from .ocr_router import router as ocr_router
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 # ──────────────────────────────────────────────
@@ -54,6 +59,9 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan,
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(ocr_router)
 
@@ -184,7 +192,8 @@ def health(request: Request):
 # Routes – Authentification
 # ──────────────────────────────────────────────
 @app.post("/api/login", tags=["Auth"], summary="Verifier sa cle API")
-def login(current_user: Annotated[UserInfo, Depends(get_current_user)]):
+@limiter.limit("10/minute")
+def login(request: Request, current_user: Annotated[UserInfo, Depends(get_current_user)]):
     """Verifie la cle API et retourne les infos de l'utilisateur."""
     return {
         "authenticated": True,

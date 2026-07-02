@@ -122,6 +122,17 @@ def test_login_invalid_key(client):
     assert response.status_code == 401
 
 
+def test_login_rate_limited(client, test_db):
+    """Test fonctionnel : /api/login coupe court au bout de 10 tentatives/minute (anti brute-force)."""
+    headers = {"X-API-Key": test_db["client_key"]}
+    for _ in range(10):
+        response = client.post("/api/login", headers=headers)
+        assert response.status_code == 200
+
+    response = client.post("/api/login", headers=headers)
+    assert response.status_code == 429
+
+
 # --- GET /api/measurements -------------------------------------------------
 
 
