@@ -136,6 +136,55 @@ def test_ui_securite_admin_rotate_key(ui_client, test_db):
     assert new_login.status_code == 200
 
 
+def test_ui_mes_donnees_shows_real_data(ui_client, test_db):
+    """views/mes_donnees.py : affiche réellement les données du compte via GET /api/me."""
+    at = AppTest.from_file("views/mes_donnees.py")
+    at.session_state["logged_in"] = True
+    at.session_state["username"] = "client_test"
+    at.session_state["api_key"] = test_db["client_key"]
+    at.run()
+
+    assert not at.exception
+    assert any("client_test" in m.value for m in at.markdown)
+
+
+def test_ui_mes_donnees_delete_requires_confirmation(ui_client, test_db):
+    """views/mes_donnees.py : le bouton de suppression reste désactivé sans coche de confirmation."""
+    at = AppTest.from_file("views/mes_donnees.py")
+    at.session_state["logged_in"] = True
+    at.session_state["username"] = "client_test"
+    at.session_state["api_key"] = test_db["client_key"]
+    at.run()
+
+    assert not at.exception
+    delete_btn = next(b for b in at.button if b.label == "Supprimer mon compte")
+    assert delete_btn.disabled is True
+
+    # La cle est toujours valide : la suppression n'a jamais ete declenchee.
+    login = ui_client.post("/api/login", headers={"X-API-Key": test_db["client_key"]})
+    assert login.status_code == 200
+
+
+def test_ui_mes_donnees_delete_with_confirmation(ui_client, test_db):
+    """views/mes_donnees.py : coche + bouton appelle réellement DELETE /api/me."""
+    at = AppTest.from_file("views/mes_donnees.py")
+    at.session_state["logged_in"] = True
+    at.session_state["username"] = "client_test"
+    at.session_state["api_key"] = test_db["client_key"]
+    at.run()
+
+    at.checkbox[0].check().run()
+    delete_btn = next(b for b in at.button if b.label == "Supprimer mon compte")
+    assert delete_btn.disabled is False
+    delete_btn.click().run()
+
+    assert not at.exception
+    assert at.session_state["logged_in"] is False
+
+    login = ui_client.post("/api/login", headers={"X-API-Key": test_db["client_key"]})
+    assert login.status_code == 401
+
+
 def test_ui_dashboard_qualite_shows_real_data(ui_client, test_db):
     """dashboard_qualite.py : les 3 onglets appellent réellement les routes /api/dashboard/*."""
     at = AppTest.from_file("dashboard_qualite.py")

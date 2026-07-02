@@ -168,10 +168,12 @@ mais `user_id` y devient `NULL` (traçabilité de sécurité conservée), alors 
 `prediction` / `performance_metrics` de l'utilisateur sont réellement supprimées.
 
 **Scénario d'utilisation**
-1. Le Client appelle `GET /api/me` → reçoit ses informations d'identification et la règle de
-   conservation appliquée.
-2. Il appelle `DELETE /api/me` → son compte et ses prélèvements sont supprimés.
-3. Sa clé API ne fonctionne plus pour aucune requête ultérieure.
+1. Sur "Mes Données (RGPD)" (`views/mes_donnees.py`), le Client voit ses informations
+   d'identification et la règle de conservation, chargées via `GET /api/me`.
+2. Il coche la case de confirmation explicite, puis clique sur "Supprimer mon compte"
+   (bouton désactivé tant que la case n'est pas cochée) → `DELETE /api/me`.
+3. Sa clé API ne fonctionne plus pour aucune requête ultérieure ; il est redirigé vers l'écran
+   de connexion.
 
 **Critères de validation**
 - `GET /api/me` sans clé → `401` ; avec clé valide → `200` + `donnees_personnelles.id_client`.
@@ -179,7 +181,9 @@ mais `user_id` y devient `NULL` (traçabilité de sécurité conservée), alors 
 - Après suppression, toute requête avec l'ancienne clé (ex. `POST /api/login`) → `401`.
 - Les lignes `audit_logs` préexistantes de cet utilisateur restent présentes mais avec
   `user_id = NULL`, jamais supprimées.
-- Couvert par `test_rgpd_me_get`, `test_rgpd_me_delete`.
+- Couvert côté API par `test_rgpd_me_get`, `test_rgpd_me_delete` ; côté UI par
+  `test_ui_mes_donnees_shows_real_data`, `test_ui_mes_donnees_delete_requires_confirmation`,
+  `test_ui_mes_donnees_delete_with_confirmation` (`tests/test_ui_integration.py`).
 - **Accessibilité (WCAG 3.3.4 Prévention des erreurs - données)** : la suppression du compte
   étant irréversible, l'interface doit exiger une confirmation explicite avant d'appeler
   `DELETE /api/me` (pas un simple clic isolé sur un bouton).

@@ -19,6 +19,7 @@ URL_LOGIN = f"{API_BASE_URL}/api/login"
 page_connexion = st.Page(lambda: login_screen(), title="Connexion", icon=None)
 page_panel = st.Page("views/panel_test.py", title="Panel de Test", icon=None)
 page_historique = st.Page("views/historique.py", title="Historique des Analyses", icon=None)
+page_mes_donnees = st.Page("views/mes_donnees.py", title="Mes Données (RGPD)", icon=None)
 page_admin = st.Page("views/accueil_admin.py", title="Registre des comptes", icon=None)
 page_securite = st.Page("views/securite_admin.py", title="Gestion des cles et Securite", icon=None)
 page_dashboard_qualite = st.Page("dashboard_qualite.py", title="Dashboard Qualite", icon=None)
@@ -34,7 +35,7 @@ else:
         nav = st.navigation([page_dashboard_qualite])
     else:
         # Par défaut, rôle "Client" ou autre
-        nav = st.navigation([page_panel, page_historique])
+        nav = st.navigation([page_panel, page_historique, page_mes_donnees])
 
 # ── 2. ÉCRAN DE CONNEXION (FONCTION) ──────────────────────────────────
 
