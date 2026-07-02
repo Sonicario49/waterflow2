@@ -208,6 +208,7 @@ def login(request: Request, current_user: Annotated[UserInfo, Depends(get_curren
 # ──────────────────────────────────────────────
 @app.post("/api/measurements", status_code=201, tags=["Prélèvements"],
           summary="Soumettre un prelèvement et obtenir une prediction")
+@limiter.limit("500/hour")
 def add_measurement(
     payload: FeaturesPayload,
     request: Request,
