@@ -103,21 +103,25 @@ réelle contre l'API (mêmes routes, même DB de test, même modèle factice).
    création, puis le compte cible de la rotation) — `selectbox[0]` visait le mauvais widget.
    Corrigé en utilisant `selectbox[1]`.
 
-**Couverture obtenue** (9 tests, tous les points de terminaison exploités par l'UI sauf deux
-exceptions documentées ci-dessous) :
+**Couverture obtenue** (12 tests, tous les points de terminaison exploités par l'UI sauf une
+exception documentée ci-dessous) :
 `POST /api/measurements`, `GET /api/measurements`, `GET /api/clients`, `POST /api/clients`,
 `POST /api/clients/{id}/rotate-key`, `GET /api/audit-logs`, `GET /api/dashboard/measurements`,
-`GET /api/dashboard/metrics`, `GET /api/dashboard/model-versions` (exécutés en une seule passe de
-script Streamlit, tous les onglets s'exécutant côté serveur indépendamment de l'onglet visible).
+`GET /api/dashboard/metrics`, `GET /api/dashboard/model-versions`, `GET`/`DELETE /api/me`
+(exécutés en une seule passe de script Streamlit, tous les onglets s'exécutant côté serveur
+indépendamment de l'onglet visible).
 
-**Limites assumées, non couvertes par ces tests** :
+**Correctif appliqué suite à l'incident 3** : `GET`/`DELETE /api/me` (RGPD) existaient côté API
+et étaient testées (`test_rgpd_me_get`, `test_rgpd_me_delete`) mais n'étaient exposées dans
+**aucune** page Streamlit — un client ne pouvait pas exercer son droit d'accès/suppression RGPD
+depuis l'UI. Ajout de `views/mes_donnees.py` (page "Mes Données (RGPD)", US-05) pour combler ce
+trou d'intégration, avec confirmation explicite (case à cocher) avant suppression — conforme aux
+critères d'accessibilité WCAG 3.3.4 déjà spécifiés dans `notebooks/user_stories.md`.
+
+**Limite assumée, non couverte par ces tests** :
 - `POST /api/ocr/lab-report` (bouton OCR de `views/panel_test.py`) : `AppTest` ne simule pas
   l'interaction avec `st.file_uploader`, ce flux reste couvert uniquement côté API
   (`tests/test_pipeline.py::test_ocr_lab_report_success`), pas côté UI.
-- `GET`/`DELETE /api/me` (RGPD) : ces routes existent côté API et sont testées
-  (`test_rgpd_me_get`, `test_rgpd_me_delete`) mais ne sont exposées dans **aucune** page
-  Streamlit actuelle — un utilisateur ne peut pas exercer son droit d'accès/suppression RGPD
-  depuis l'UI, uniquement via l'API directement.
 
 ---
 
@@ -125,4 +129,5 @@ script Streamlit, tous les onglets s'exécutant côté serveur indépendamment d
 
 Run CI complet et vert sur `fix-ci-pytest` (id `28558610639`) : `Validate raw data` → `Run tests`
 (32/32) → `Train & validate model (F1-score gate)`, les trois étapes réussissent sans erreur.
-Suite complète actuelle (API + intégration UI) : 43/43 tests passés en local.
+Suite complète actuelle (API + intégration UI) : 46/46 tests passés en local et en CI
+(run `28603481452` sur `ui-integration-tests`, vert de bout en bout y compris les builds Docker).

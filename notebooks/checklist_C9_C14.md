@@ -31,7 +31,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] L'application de départ est installée et fonctionnelle en environnement de développement.
 - [x] La communication avec l'API depuis l'application fonctionne.
 - [x] Les éventuelles étapes d'authentification et de renouvellement de l'authentification (expiration des jetons, etc.) sont intégrées correctement en suivant la documentation de l'API.
-- [ ] Tous les points de terminaison de l'API concernés par le projet sont intégrés à l'application selon les spécifications fonctionnelles et techniques.
+- [x] Tous les points de terminaison de l'API concernés par le projet sont intégrés à l'application selon les spécifications fonctionnelles et techniques.
 - [ ] Les adaptations d'interface nécessaires et en accord avec les spécifications sont intégrées à l'application.
 - [ ] Les tests d'intégration couvrent tous les points de terminaison exploités.
 - [x] Les tests s'exécutent en totalité, sans bug dans les programmes de test eux-mêmes.
