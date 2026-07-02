@@ -26,17 +26,6 @@ Table prediction {
   created_at timestamp
 }
 
-Table performance_metrics {
-  id integer [pk, increment]
-  prediction_id integer [ref: > prediction.id]
-  accuracy real
-  precision real
-  recall real
-  f1_score real
-  ROCK_SCORE real
-  response_time real
-}
-
 Table audit_logs {
   id integer [pk, increment]
   user_id integer [ref: > users.id, note: 'NULL après suppression RGPD du compte (droit à l’oubli)']

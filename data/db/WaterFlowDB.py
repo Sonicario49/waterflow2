@@ -44,20 +44,6 @@ class WaterFlowDB:
         self._ensure_prediction_columns()
 
         self.cursor.execute("""
-        CREATE TABLE IF NOT EXISTS performance_metrics (
-            id INTEGER PRIMARY KEY,
-            prediction_id INTEGER,
-            accuracy REAL,
-            precision REAL,
-            recall REAL,
-            f1_score REAL,
-            ROCK_SCORE REAL,
-            response_time REAL,
-            FOREIGN KEY (prediction_id) REFERENCES prediction (id)
-        )
-        """)
-
-        self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS audit_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -111,19 +97,13 @@ class WaterFlowDB:
         self.conn.commit()
 
     def delete_user(self, user_id):
-        # 1. Supprimer les métriques liées aux prédictions de cet utilisateur
-        self.cursor.execute("""
-        DELETE FROM performance_metrics 
-        WHERE prediction_id IN (SELECT id FROM prediction WHERE user_id = ?)
-        """, (user_id,))
-
-        # 2. Supprimer toutes les prédictions de cet utilisateur
+        # 1. Supprimer toutes les prédictions de cet utilisateur
         self.cursor.execute("""
         DELETE FROM prediction
         WHERE user_id = ?
         """, (user_id,))
 
-        # 3. Option RGPD pour les logs d'audit : anonymiser plutôt que supprimer
+        # 2. Option RGPD pour les logs d'audit : anonymiser plutôt que supprimer
         # Cela permet de conserver l'historique de l'audit sans bloquer la suppression
         self.cursor.execute("""
         UPDATE audit_logs
@@ -131,7 +111,7 @@ class WaterFlowDB:
         WHERE user_id = ?
         """, (user_id,))
 
-        # 4. Supprimer enfin l'utilisateur
+        # 3. Supprimer enfin l'utilisateur
         self.cursor.execute("""
         DELETE FROM users
         WHERE id = ?
@@ -237,43 +217,6 @@ class WaterFlowDB:
         query += " ORDER BY p.created_at DESC"
 
         self.cursor.execute(query, params)
-        return self.cursor.fetchall()
-    
-    # métrics
-
-    def add_metrics(self, prediction_id, accuracy, precision, recall, f1_score,
-                    rock_score, response_time):
-
-        self.cursor.execute("""
-        INSERT INTO performance_metrics (
-            prediction_id, accuracy, precision, recall, f1_score,
-            ROCK_SCORE, response_time
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            prediction_id, accuracy, precision, recall, f1_score,
-            rock_score, response_time
-        ))
-
-        self.conn.commit()
-
-    def update_metrics(self, metrics_id, accuracy, recall):
-        self.cursor.execute("""
-        UPDATE performance_metrics
-        SET accuracy = ?, recall = ?
-        WHERE id = ?
-        """, (accuracy, recall, metrics_id))
-        self.conn.commit()
-
-    def delete_metrics(self, metrics_id):
-        self.cursor.execute("""
-        DELETE FROM performance_metrics
-        WHERE id = ?
-        """, (metrics_id,))
-        self.conn.commit()
-
-    def get_metrics(self):
-        self.cursor.execute("SELECT * FROM performance_metrics")
         return self.cursor.fetchall()
     
     # Log

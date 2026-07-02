@@ -165,7 +165,7 @@ compte, **afin de** exercer mon droit d'accès et mon droit à l'oubli RGPD.
 
 **Contexte** : la suppression est une anonymisation partielle : les `audit_logs` sont conservés
 mais `user_id` y devient `NULL` (traçabilité de sécurité conservée), alors que les
-`prediction` / `performance_metrics` de l'utilisateur sont réellement supprimées.
+`prediction` de l'utilisateur sont réellement supprimées.
 
 **Scénario d'utilisation**
 1. Sur "Mes Données (RGPD)" (`views/mes_donnees.py`), le Client voit ses informations

@@ -99,7 +99,7 @@ building this suite.
   `data/db/waterflow.db` (gitignored — real API-key hashes + audit logs, never versioned). Tables:
   `users` (api_key stored as SHA-256 hash, `right` = role, `is_active` supports key revocation),
   `prediction` (one row per measurement + potability result + `source`: `manuel` or `ocr`),
-  `performance_metrics`, `audit_logs`. `_ensure_prediction_columns()` runs a soft migration (adds
+  `audit_logs`. `_ensure_prediction_columns()` runs a soft migration (adds
   columns if missing) on every connect — there is no separate migration tool. Every route
   opens/closes its own `WaterFlowDB()` connection rather than sharing one.
 - **`scripts/experiment.py`** — standalone MLflow training script (not imported by the API): loads
@@ -142,7 +142,7 @@ building this suite.
   persist the plaintext value anywhere else.
 - RGPD endpoints (`/api/me` GET/DELETE) matter to this project: account deletion anonymizes
   `audit_logs.user_id` to NULL instead of deleting audit rows, while actually deleting the user's
-  `prediction`/`performance_metrics` rows. Exposed in the UI via `views/mes_donnees.py`.
+  `prediction` rows. Exposed in the UI via `views/mes_donnees.py`.
 - Relative file paths in code (`data/processed/...`, `data/db/waterflow.db`, `mean_features.json`)
   are resolved against the current working directory, not the script's location — always run
   scripts from the repo root. Never hardcode Windows-style backslash paths (breaks on Linux/Docker).
