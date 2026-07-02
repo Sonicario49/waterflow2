@@ -6,6 +6,7 @@ Swagger UI : http://localhost:8000/docs
 """
 
 import hashlib
+import os
 import secrets
 import numpy as np
 import mlflow.xgboost
@@ -35,7 +36,7 @@ limiter = Limiter(key_func=get_remote_address)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Charge le modèle MLflow une seule fois au démarrage."""
-    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
     model_uri = "models:/water_quality_model/Production"
     try:
         print(f"Chargement du modèle XGBoost ({model_uri})...")

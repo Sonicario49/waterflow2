@@ -30,3 +30,6 @@ jobs:
 
       - name: Train & validate model (F1-score gate)
         run: python scripts/validate_model.py
+
+      - name: Build API Docker image (packaging)
+        run: docker build -t waterflow2-api:${{ github.sha }} .
