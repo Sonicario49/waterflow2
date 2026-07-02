@@ -33,3 +33,6 @@ jobs:
 
       - name: Build API Docker image (packaging)
         run: docker build -t waterflow2-api:${{ github.sha }} .
+
+      - name: Build full docker-compose stack (mlflow + api + streamlit)
+        run: docker compose build

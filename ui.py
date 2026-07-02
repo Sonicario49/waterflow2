@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import requests
 
@@ -9,7 +11,7 @@ if "logged_in" not in st.session_state:
     st.session_state.api_key = None
     st.session_state.role = None  # Stocke "Admin" , "Data_Quality" ou "Client"
 
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 URL_LOGIN = f"{API_BASE_URL}/api/login"
 
 # ── 1. GESTION DES PAGES VIA ST.NAVIGATION ───────────────────────────
