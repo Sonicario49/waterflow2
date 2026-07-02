@@ -6,7 +6,11 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./mlruns:/app/mlruns
+      # Sans --backend-store-uri explicite, mlflow server stocke tout (registre +
+      # sqlite mlflow.db + artefacts) dans son repertoire de travail (/app), pas
+      # dans un sous-dossier mlruns/ : on monte donc /app en entier pour persister
+      # entre les redemarrages/rebuilds du conteneur.
+      - ./mlflow_data:/app
 
   api:
     build:
