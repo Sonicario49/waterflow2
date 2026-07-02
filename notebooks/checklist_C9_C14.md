@@ -16,7 +16,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 - [x] L'API restreint l'accès au modèle IA avec un moyen d'authentification.
 - [x] L'API permet l'accès aux fonctions du modèle, comme attendu selon les spécifications.
-- [ ] Les recommandations de sécurisation d'une API du Top 10 OWASP sont intégrées quand nécessaire.
+- [x] Les recommandations de sécurisation d'une API du Top 10 OWASP sont intégrées quand nécessaire.
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant.
 - [x] Les tests couvrent tous les points de terminaison dans le respect des spécifications.
 - [x] Les tests s'exécutent sans bug.
@@ -24,7 +24,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] La documentation couvre l'architecture et tous les points de terminaison de l'API.
 - [x] La documentation couvre les règles d'authentification et/ou d'autorisation d'accès à l'API.
 - [x] La documentation et l'API respectent les standards d'un modèle choisi (ex. OpenAPI).
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité (ex. association Valentin Haüy ou Microsoft).
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité (ex. association Valentin Haüy ou Microsoft).
 
 ### C10 — Intégrer l'API d'un modèle/service IA dans une application
 
@@ -58,7 +58,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] **Les tests s'exécutent sans problème technique en environnement de test** (critère bloquant — vérifier que `pytest` se termine avec un exit code 0, sans erreur d'import ni d'exécution).
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant (DVC, GitLab, etc.).
 - [x] La documentation couvre la procédure d'installation de l'environnement de test, les dépendances installées, la procédure d'exécution des tests et de calcul de la couverture.
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ### C13 — Créer une chaîne de livraison continue d'un modèle IA (CI/CD, MLOps)
 
