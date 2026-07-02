@@ -137,6 +137,8 @@ def client(test_db, monkeypatch):
 
     from api.main import app
 
+    app.state.limiter.reset()
+
     with TestClient(app) as c:
         c.app.state.model = DummyModel()
         yield c

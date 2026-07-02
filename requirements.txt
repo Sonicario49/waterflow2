@@ -10,3 +10,4 @@ imbalanced-learn
 pytest
 pytest-cov
 httpx
+slowapi

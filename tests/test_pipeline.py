@@ -44,6 +44,14 @@ def test_health_endpoint(client):
     assert json_data["model_loaded"] is True
 
 
+def test_security_headers_present(client):
+    """Test fonctionnel : chaque réponse porte les en-têtes de sécurité de base."""
+    response = client.get("/health")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer"
+
+
 def test_measurements_requires_api_key(client):
     """Test fonctionnel : /api/measurements refuse une requête sans clé API."""
     response = client.post("/api/measurements", json={"features": POTABLE_FEATURES})
@@ -120,6 +128,17 @@ def test_login_valid_key(client, test_db):
 def test_login_invalid_key(client):
     response = client.post("/api/login", headers={"X-API-Key": "not-a-real-key"})
     assert response.status_code == 401
+
+
+def test_login_rate_limited(client, test_db):
+    """Test fonctionnel : /api/login coupe court au bout de 10 tentatives/minute (anti brute-force)."""
+    headers = {"X-API-Key": test_db["client_key"]}
+    for _ in range(10):
+        response = client.post("/api/login", headers=headers)
+        assert response.status_code == 200
+
+    response = client.post("/api/login", headers=headers)
+    assert response.status_code == 429
 
 
 # --- GET /api/measurements -------------------------------------------------
