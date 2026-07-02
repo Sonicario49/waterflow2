@@ -40,15 +40,15 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ### C11 — Monitorer un modèle IA (métriques, alertes, restitution)
 
-- [ ] Les métriques faisant l'objet du monitorage du modèle sont expliquées sans erreur d'interprétation.
+- [x] Les métriques faisant l'objet du monitorage du modèle sont expliquées sans erreur d'interprétation.
 - [x] Le ou les outils pour l'intégration du monitorage du modèle sont adaptés au contexte et aux contraintes techniques du projet.
 - [x] Au moins un vecteur de restitution des métriques évaluées, en temps réel, est proposé (dashboard, feuille de calcul, etc.).
-- [ ] Les enjeux d'accessibilité, pour toutes les parties prenantes du projet, sont pris en compte lors de la sélection de l'outil de restitution.
+- [x] Les enjeux d'accessibilité, pour toutes les parties prenantes du projet, sont pris en compte lors de la sélection de l'outil de restitution.
 - [x] La chaîne de monitorage est d'abord testée dans un bac à sable ou environnement de test dédié.
 - [x] La chaîne de monitorage est en état de marche : les métriques visées sont effectivement évaluées et restituées.
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant.
-- [ ] La documentation technique de la chaîne de monitorage couvre la procédure d'installation, de configuration, et d'utilisation à destination des équipes techniques.
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+- [x] La documentation technique de la chaîne de monitorage couvre la procédure d'installation, de configuration, et d'utilisation à destination des équipes techniques.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ### C12 — Programmer les tests automatisés d'un modèle IA
 
@@ -62,14 +62,14 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ### C13 — Créer une chaîne de livraison continue d'un modèle IA (CI/CD, MLOps)
 
-- [ ] La documentation pour l'utilisation de la chaîne couvre toutes les étapes, les tâches et tous les déclencheurs disponibles.
+- [x] La documentation pour l'utilisation de la chaîne couvre toutes les étapes, les tâches et tous les déclencheurs disponibles.
 - [x] Les déclencheurs sont intégrés comme préalablement définis.
 - [x] Le ou les fichiers de configuration de la chaîne sont correctement reconnus et exécutés par le système selon les déclencheurs configurés.
 - [x] L'étape de test des données est intégrée à la chaîne et s'exécute sans erreur.
 - [x] La ou les étapes de test, d'entraînement et de validation du modèle sont intégrées à la chaîne et s'exécutent sans erreur.
 - [x] Les sources de la chaîne sont versionnées et accessibles depuis le dépôt Git distant du projet.
-- [ ] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+- [x] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ---
 
@@ -118,23 +118,23 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ### C18 — Automatiser les phases de tests du code source (intégration continue)
 
-- [ ] La documentation pour l'utilisation de la chaîne couvre les outils, toutes les étapes, les tâches et tous les déclencheurs de la chaîne.
+- [x] La documentation pour l'utilisation de la chaîne couvre les outils, toutes les étapes, les tâches et tous les déclencheurs de la chaîne.
 - [x] Un outil de configuration et d'exécution d'une chaîne d'intégration continue est sélectionné de façon cohérente avec l'environnement technique du projet.
 - [x] La chaîne intègre toutes les étapes nécessaires et préalables à l'exécution des tests de l'application (build, configurations…).
 - [x] La chaîne exécute les tests de l'application disponibles lors de son déclenchement.
 - [x] Les configurations sont versionnées avec les sources du projet d'application, sur un dépôt Git distant.
-- [ ] La documentation de la chaîne d'intégration continue couvre la procédure d'installation, de configuration et de test de la chaîne.
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+- [x] La documentation de la chaîne d'intégration continue couvre la procédure d'installation, de configuration et de test de la chaîne.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ### C19 — Créer un processus de livraison continue de l'application
 
-- [ ] La documentation pour l'utilisation de la chaîne couvre toutes les étapes de la chaîne, les tâches et tous les déclencheurs disponibles.
+- [x] La documentation pour l'utilisation de la chaîne couvre toutes les étapes de la chaîne, les tâches et tous les déclencheurs disponibles.
 - [x] Le ou les fichiers de configuration de la chaîne sont correctement reconnus et exécutés par le système.
 - [x] La ou les étapes de packaging (compilation, minification, build de containers, etc.) de l'application sont intégrées à la chaîne et s'exécutent sans erreur.
 - [ ] L'étape de livraison (pull request par exemple) est intégrée et exécutée une fois la ou les étapes de packaging validées.
 - [x] Les sources de la chaîne sont versionnées et accessibles depuis le dépôt Git distant du projet d'application.
-- [ ] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
-- [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
+- [x] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
+- [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
 
 ---
 
