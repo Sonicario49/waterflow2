@@ -10,6 +10,7 @@ Isole complètement les tests de l'environnement réel :
 """
 
 import hashlib
+import urllib.parse
 
 import numpy as np
 import pytest
@@ -142,6 +143,36 @@ def client(test_db, monkeypatch):
     with TestClient(app) as c:
         c.app.state.model = DummyModel()
         yield c
+
+
+def _url_to_path(url: str) -> str:
+    """Retire le scheme+host d'une URL absolue (ex. http://127.0.0.1:8000/api/login)
+    pour ne garder que ce que TestClient attend (ex. /api/login)."""
+    parsed = urllib.parse.urlparse(url)
+    return parsed.path + (f"?{parsed.query}" if parsed.query else "")
+
+
+@pytest.fixture
+def ui_client(client, monkeypatch):
+    """Redirige requests.get/post/delete vers le TestClient FastAPI, pour que les
+    pages Streamlit (views/*.py, dashboard_qualite.py) soient testées en intégration
+    réelle contre l'API (mêmes routes, même DB de test, même modèle factice) sans
+    avoir besoin d'un serveur HTTP réellement lancé sur le port 8000."""
+
+    def fake_get(url, headers=None, params=None, **kwargs):
+        return client.get(_url_to_path(url), headers=headers, params=params)
+
+    def fake_post(url, headers=None, json=None, data=None, files=None, **kwargs):
+        return client.post(_url_to_path(url), headers=headers, json=json, data=data, files=files)
+
+    def fake_delete(url, headers=None, **kwargs):
+        return client.delete(_url_to_path(url), headers=headers)
+
+    monkeypatch.setattr("requests.get", fake_get)
+    monkeypatch.setattr("requests.post", fake_post)
+    monkeypatch.setattr("requests.delete", fake_delete)
+
+    return client
 
 
 @pytest.fixture

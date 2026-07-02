@@ -24,6 +24,10 @@ espace personnel sans créer de mot de passe.
 
 **Contexte** : l'authentification est stateless, basée sur le header `X-API-Key` (SHA-256
 haché puis comparé en base). Il n'y a pas d'inscription libre : la clé est fournie par un Admin.
+L'authentification repose sur des clés API statiques, sans expiration ; il n'y a donc pas de
+mécanisme de renouvellement de jeton (pas de JWT/OAuth2 ni de refresh token) — la révocation ou
+la rotation d'une clé est un acte administratif explicite (`POST /api/clients/{cid}/rotate-key`),
+jamais un renouvellement automatique déclenché côté client.
 
 **Scénario d'utilisation**
 1. L'utilisateur ouvre l'application Streamlit ; seule la page de connexion est visible
