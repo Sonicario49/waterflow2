@@ -81,7 +81,48 @@ chargé en interne.
 
 ---
 
+## Incident 3 — écriture des tests d'intégration UI (`tests/test_ui_integration.py`)
+
+**Contexte** : `tests/test_pipeline.py` ne teste que l'API FastAPI en direct (via `TestClient`),
+jamais la couche Streamlit qui la consomme (`ui.py`, `views/*.py`, `dashboard_qualite.py`). Un
+nouveau fixture `ui_client` (`tests/conftest.py`) redirige `requests.get/post/delete` vers ce même
+`TestClient`, pour exécuter les pages Streamlit via `streamlit.testing.v1.AppTest` en intégration
+réelle contre l'API (mêmes routes, même DB de test, même modèle factice).
+
+**Deux échecs rencontrés en écrivant ces tests, et leur interprétation** :
+
+1. `test_ui_historique_shows_real_data` échouait avec
+   `AttributeError: st.session_state has no attribute "user_id"`, levée depuis
+   `views/historique.py:88` (nom du fichier CSV exporté). Interprétation : ce n'est pas un bug de
+   l'application — en usage réel, `ui.py` initialise toujours `user_id` à la connexion — mais un
+   oubli dans le setup du test (`at.session_state` incomplet). Corrigé en initialisant `user_id`
+   avant `at.run()`.
+2. `test_ui_securite_admin_rotate_key` échouait avec
+   `ValueError: 'ID 2 - client_test (Client)' is not in list` sur `at.selectbox[0].select(...)`.
+   Interprétation : `securite_admin.py` contient **deux** `st.selectbox` (le rôle du formulaire de
+   création, puis le compte cible de la rotation) — `selectbox[0]` visait le mauvais widget.
+   Corrigé en utilisant `selectbox[1]`.
+
+**Couverture obtenue** (9 tests, tous les points de terminaison exploités par l'UI sauf deux
+exceptions documentées ci-dessous) :
+`POST /api/measurements`, `GET /api/measurements`, `GET /api/clients`, `POST /api/clients`,
+`POST /api/clients/{id}/rotate-key`, `GET /api/audit-logs`, `GET /api/dashboard/measurements`,
+`GET /api/dashboard/metrics`, `GET /api/dashboard/model-versions` (exécutés en une seule passe de
+script Streamlit, tous les onglets s'exécutant côté serveur indépendamment de l'onglet visible).
+
+**Limites assumées, non couvertes par ces tests** :
+- `POST /api/ocr/lab-report` (bouton OCR de `views/panel_test.py`) : `AppTest` ne simule pas
+  l'interaction avec `st.file_uploader`, ce flux reste couvert uniquement côté API
+  (`tests/test_pipeline.py::test_ocr_lab_report_success`), pas côté UI.
+- `GET`/`DELETE /api/me` (RGPD) : ces routes existent côté API et sont testées
+  (`test_rgpd_me_get`, `test_rgpd_me_delete`) mais ne sont exposées dans **aucune** page
+  Streamlit actuelle — un utilisateur ne peut pas exercer son droit d'accès/suppression RGPD
+  depuis l'UI, uniquement via l'API directement.
+
+---
+
 ## Résultat final
 
 Run CI complet et vert sur `fix-ci-pytest` (id `28558610639`) : `Validate raw data` → `Run tests`
 (32/32) → `Train & validate model (F1-score gate)`, les trois étapes réussissent sans erreur.
+Suite complète actuelle (API + intégration UI) : 43/43 tests passés en local.

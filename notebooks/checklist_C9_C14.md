@@ -28,14 +28,14 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ### C10 — Intégrer l'API d'un modèle/service IA dans une application
 
-- [ ] L'application de départ est installée et fonctionnelle en environnement de développement.
-- [ ] La communication avec l'API depuis l'application fonctionne.
-- [ ] Les éventuelles étapes d'authentification et de renouvellement de l'authentification (expiration des jetons, etc.) sont intégrées correctement en suivant la documentation de l'API.
+- [x] L'application de départ est installée et fonctionnelle en environnement de développement.
+- [x] La communication avec l'API depuis l'application fonctionne.
+- [x] Les éventuelles étapes d'authentification et de renouvellement de l'authentification (expiration des jetons, etc.) sont intégrées correctement en suivant la documentation de l'API.
 - [ ] Tous les points de terminaison de l'API concernés par le projet sont intégrés à l'application selon les spécifications fonctionnelles et techniques.
 - [ ] Les adaptations d'interface nécessaires et en accord avec les spécifications sont intégrées à l'application.
 - [ ] Les tests d'intégration couvrent tous les points de terminaison exploités.
-- [ ] Les tests s'exécutent en totalité, sans bug dans les programmes de test eux-mêmes.
-- [ ] Les résultats des tests sont correctement interprétés.
+- [x] Les tests s'exécutent en totalité, sans bug dans les programmes de test eux-mêmes.
+- [x] Les résultats des tests sont correctement interprétés.
 - [x] Les sources sont versionnées et accessibles depuis le dépôt Git de l'application.
 
 ### C11 — Monitorer un modèle IA (métriques, alertes, restitution)
