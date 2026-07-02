@@ -44,6 +44,14 @@ def test_health_endpoint(client):
     assert json_data["model_loaded"] is True
 
 
+def test_security_headers_present(client):
+    """Test fonctionnel : chaque réponse porte les en-têtes de sécurité de base."""
+    response = client.get("/health")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "no-referrer"
+
+
 def test_measurements_requires_api_key(client):
     """Test fonctionnel : /api/measurements refuse une requête sans clé API."""
     response = client.post("/api/measurements", json={"features": POTABLE_FEATURES})

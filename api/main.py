@@ -65,6 +65,24 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(ocr_router)
 
+# Pas de CORSMiddleware : l'UI Streamlit appelle cette API cote serveur (module
+# `requests`), jamais depuis du JS execute dans un navigateur. Sans CORSMiddleware,
+# FastAPI n'ajoute aucun header Access-Control-Allow-Origin, ce qui est deja la
+# posture la plus restrictive (un navigateur bloque par defaut toute lecture
+# cross-origin en JS). A revoir uniquement si un front web tiers doit un jour
+# appeler cette API directement depuis un navigateur.
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Ajoute des en-tetes de securite de base a chaque reponse."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+
 @app.middleware("http")
 async def access_log(request: Request, call_next):
     t0 = time.time()
