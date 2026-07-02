@@ -44,6 +44,16 @@ def test_health_endpoint(client):
     assert json_data["model_loaded"] is True
 
 
+def test_metrics_endpoint(client):
+    """Test fonctionnel : /metrics expose les métriques RED au format Prometheus, sans auth."""
+    client.get("/health")  # genere au moins une requete a compter
+
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert "http_requests_total" in response.text
+    assert "http_request_duration_seconds" in response.text
+
+
 def test_security_headers_present(client):
     """Test fonctionnel : chaque réponse porte les en-têtes de sécurité de base."""
     response = client.get("/health")

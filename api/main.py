@@ -17,6 +17,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from prometheus_client import Counter, Histogram, make_asgi_app
 from pydantic import BaseModel, Field
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -24,7 +25,16 @@ from slowapi.util import get_remote_address
 
 from data.db.WaterFlowDB import WaterFlowDB
 from .auth import UserInfo, get_current_user, require_role
+from .logging_config import logger
 from .ocr_router import router as ocr_router
+
+# Metriques RED (Rate, Errors, Duration) exposees sur /metrics pour Prometheus.
+HTTP_REQUESTS = Counter(
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
+)
+HTTP_LATENCY = Histogram(
+    "http_request_duration_seconds", "Request duration", ["endpoint"]
+)
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -39,12 +49,12 @@ async def lifespan(app: FastAPI):
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
     model_uri = "models:/water_quality_model/Production"
     try:
-        print(f"Chargement du modèle XGBoost ({model_uri})...")
+        logger.info("model_loading", extra={"model_uri": model_uri})
         app.state.model = mlflow.xgboost.load_model(model_uri)
         app.state.best_threshold = 0.37
-        print("Modèle chargé avec succès !")
+        logger.info("model_loaded", extra={"model_uri": model_uri})
     except Exception as e:
-        print(f"Erreur chargement modèle : {e}")
+        logger.error("model_load_failed", extra={"model_uri": model_uri, "error": str(e)})
         app.state.model = None
         app.state.best_threshold = 0.37
     yield  # L'application tourne ici
@@ -65,6 +75,25 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.include_router(ocr_router)
+
+# Expose les metriques Prometheus (RATE/ERRORS/DURATION) sur GET /metrics,
+# scrapees par le service `prometheus` du docker-compose (voir prometheus.yml).
+app.mount("/metrics", make_asgi_app())
+
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    t0 = time.time()
+    response = await call_next(request)
+    duration = time.time() - t0
+
+    HTTP_LATENCY.labels(endpoint=request.url.path).observe(duration)
+    HTTP_REQUESTS.labels(
+        method=request.method, endpoint=request.url.path, status=response.status_code
+    ).inc()
+
+    return response
+
 
 # Pas de CORSMiddleware : l'UI Streamlit appelle cette API cote serveur (module
 # `requests`), jamais depuis du JS execute dans un navigateur. Sans CORSMiddleware,
@@ -92,7 +121,7 @@ async def access_log(request: Request, call_next):
     
     duration = time.time() - t0
     
-    if request.url.path == "/health" or request.url.path == "/api/ocr/health":
+    if request.url.path in ("/health", "/api/ocr/health", "/metrics"):
         return response
 
     user_id = None
@@ -124,7 +153,7 @@ async def access_log(request: Request, call_next):
         )
         db.close()
     except Exception as e:
-        print(f"[AUDIT ERROR] Impossible d'ecrire le log d'accès : {e}")
+        logger.error("audit_log_write_failed", extra={"error": str(e)})
 
     return response
 

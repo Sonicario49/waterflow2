@@ -45,7 +45,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] Au moins un vecteur de restitution des métriques évaluées, en temps réel, est proposé (dashboard, feuille de calcul, etc.).
 - [ ] Les enjeux d'accessibilité, pour toutes les parties prenantes du projet, sont pris en compte lors de la sélection de l'outil de restitution.
 - [x] La chaîne de monitorage est d'abord testée dans un bac à sable ou environnement de test dédié.
-- [ ] La chaîne de monitorage est en état de marche : les métriques visées sont effectivement évaluées et restituées.
+- [x] La chaîne de monitorage est en état de marche : les métriques visées sont effectivement évaluées et restituées.
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant.
 - [ ] La documentation technique de la chaîne de monitorage couvre la procédure d'installation, de configuration, et d'utilisation à destination des équipes techniques.
 - [ ] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
