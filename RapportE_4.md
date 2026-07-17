@@ -5,7 +5,7 @@
 | | |
 |---|---|
 | **Candidat·e** | Noureddine BENDANOUNE |
-| **Date de session** | `[À COMPLÉTER]` |
+| **Date de session** | 31/07/2026 |
 | **Thème du projet** | Waterflow 2 — prédiction de potabilité de l'eau (MLOps, XGBoost via MLflow) |
 | **Dépôt Git** | https://github.com/Sonicario49/waterflow2 |
 
@@ -19,9 +19,9 @@ RNCP, puis une preuve concrète tirée du dépôt (fichier, ligne, test, capture
 dans le corps du texte que lorsqu'il est indispensable à la démonstration ; le reste est renvoyé en
 annexe, hors comptage.*
 
-*Ce fichier est un plan de rédaction : chaque section contient les critères à satisfaire et des
-repères `[À COMPLÉTER]` pointant vers les preuves probables déjà identifiées dans le dépôt. Le
-contenu rédigé viendra remplacer ces repères compétence par compétence — on commence par C15.*
+*Les sorties de commandes citées ci-dessous (`docker compose up`, appels HTTP, API GitHub pour
+le statut des runs CI) ont été obtenues en exécutant réellement le projet le 17/07/2026, pas
+recopiées depuis une documentation antérieure.*
 
 ---
 
@@ -35,10 +35,15 @@ contenu rédigé viendra remplacer ces repères compétence par compétence — 
 > **Évaluation** : correction du rapport professionnel + soutenance orale individuelle
 > intégrant une démonstration du projet.
 
-`[À COMPLÉTER : 1 paragraphe de contexte — l'application concernée est l'ensemble UI Streamlit
-+ API FastAPI de Waterflow 2 (pas seulement le modèle, contrairement à E3). Préciser le
-commanditaire fictif/réel et le périmètre couvert par C14-C19 par rapport à ce qui a déjà été
-traité en E3 (C9-C13, mise en service du modèle).]`
+Là où E3 (C9-C13, cf. `RapportE_3.md`) porte sur la mise en service du modèle IA seul (API,
+monitorage, tests, livraison du modèle), E4 porte sur l'**application dans son ensemble** :
+l'interface Streamlit multi-pages (`ui.py`, `views/`, `dashboard_qualite.py`) et l'API FastAPI
+qui la sert, du besoin fonctionnel jusqu'à la livraison. Commanditaire fictif : un réseau de
+laboratoires d'analyse d'eau souhaitant remplacer une saisie manuelle de résultats par une
+plateforme centralisée avec prédiction automatique de potabilité, historique par client, et un
+espace de supervision qualité pour les analystes. C14 à C19 couvrent respectivement : analyser
+ce besoin et le modéliser (C14), concevoir le cadre technique (C15), coordonner la réalisation
+(C16), développer les composants (C17), automatiser les tests (C18), et livrer en continu (C19).
 
 ---
 
@@ -55,13 +60,56 @@ traité en E3 (C9-C13, mise en service du modèle).]`
 > - Les objectifs d'accessibilité sont formulés en s'appuyant sur un des standards
 >   d'accessibilité : WCAG, RGAA, etc.
 
-`[À COMPLÉTER : s'appuyer sur les preuves déjà présentes dans le dépôt —
-docs/Slidesupport/MCD.txt + MPD.txt (formalisme Merise/entités-relations),
-docs/parcours_utilisateurs.md (4 flowcharts Mermaid : Auth, Client, Quality_Analyst, Admin —
-déjà exportés en PNG dans docs/Slidesupport/ pour les slides), docs/user_stories.md
-(spécifications fonctionnelles + critères WCAG par story). Vérifier que chaque user story
-couvre bien contexte/scénarios/critères de validation, et que les critères d'accessibilité y
-sont intégrés nativement (pas en annexe séparée).]`
+### 1.1 Modélisation des données (formalisme Merise)
+
+`docs/Slidesupport/MCD.txt` (Modèle Conceptuel de Données, notation [mocodo.net](https://www.mocodo.net/))
+et `MPD.txt` (Modèle Physique de Données, notation [dbdiagram.io](https://dbdiagram.io/d))
+modélisent les 3 tables réelles de `data/db/WaterFlowDB.py` : `USERS` (id, username, api_key,
+right, is_active), `PREDICTION` (les 9 mesures + potability + source + created_at) et
+`LOGS_AUDIT` (endpoint, method, status, duration, ip, created_at), reliées par deux
+associations Merise : `TRACER` (0N USERS, 01 LOGS_AUDIT) et `SOUMETTRE` (0N USERS, 11
+PRELEVEMENT). Le MPD explicite les contraintes non visibles sur le MCD seul : `api_key` notée
+"SHA-256 hash, jamais stocké en clair", et `audit_logs.user_id` noté "NULL après suppression
+RGPD du compte (droit à l'oubli)" — la modélisation porte donc aussi les décisions de sécurité
+et de conformité, pas seulement la structure des données.
+
+### 1.2 Modélisation des parcours utilisateurs
+
+`docs/parcours_utilisateurs.md` : 4 schémas fonctionnels Mermaid (`flowchart TD`), dérivés
+directement de la logique de routage réelle (`st.navigation` selon `st.session_state.role` dans
+`ui.py`, actions déclenchées dans `views/*.py`) — authentification et aiguillage par rôle
+(commun à tous), puis un flowchart dédié par rôle (Client, Quality_Analyst, Admin). Chaque
+nœud correspond à un écran ou un appel API réel (ex. `POST /api/ocr/lab-report`, `202/206
+partiel`), pas une intention abstraite.
+
+### 1.3 Spécifications fonctionnelles (user stories)
+
+`docs/user_stories.md` : 12 user stories au format *En tant que / je veux / afin de*, réparties
+par rôle (US-01 à US-05 Client, US-06 à US-08 Quality_Analyst, US-09 à US-11 Admin, US-12
+Transverse). Chacune couvre systématiquement les 3 volets attendus : **Contexte** (contraintes
+techniques, ex. US-01 précise l'absence de refresh token), **Scénario d'utilisation** (étapes
+numérotées, écran par écran), et **Critères de validation** (comportements attendus, tracés
+explicitement vers le test qui les couvre). Exemple concret (US-02, prédiction manuelle) :
+
+> Requête avec 9 features valides + clé API valide → `201`, réponse contient `prediction` (0 ou
+> 1), `probability_potable`, `water_status`, `client_id`. `probability_potable >= 0.37` ⟹
+> `prediction = 1`. Sans header `X-API-Key` → `401`. Payload ≠ 9 features → `422`. Couvert par
+> `test_measurements_predict_potable`, `test_measurements_predict_non_potable`,
+> `test_measurements_bad_request`, `test_measurements_requires_api_key`.
+
+Cette traçabilité spec ↔ test existe sur les 12 stories, pas seulement celle-ci.
+
+### 1.4 Accessibilité intégrée aux critères d'acceptation
+
+Les objectifs d'accessibilité ne sont pas dans une annexe séparée : chaque story porte ses
+propres critères WCAG directement dans sa section "Critères de validation", formulés en
+s'appuyant explicitement sur le référentiel **WCAG 2.1** (niveau AA visé), avec le numéro de
+critère de succès cité (ex. US-02 : *"Accessibilité (WCAG 1.4.1 Utilisation de la couleur) : le
+verdict Potable/Non Potable reste toujours accompagné du texte correspondant, jamais signalé
+par la seule couleur"*). Limite assumée et documentée dans le fichier lui-même : ce sont des
+**objectifs cibles** pour l'implémentation, pas un audit réalisé — aucun contrôle outillé
+(contraste réel, lecteur d'écran, navigation clavier de bout en bout) n'a été mené sur
+l'application Streamlit actuelle.
 
 ---
 
@@ -82,12 +130,25 @@ sont intégrés nativement (pas en annexe séparée).]`
 
 ### 2.1 Architecture, dépendances, environnement d'exécution
 
-`[À COMPLÉTER : décrire l'architecture réelle à partir de docker-compose.yml (5 services :
-mlflow, api, streamlit, prometheus, grafana), des 3 Dockerfiles (Dockerfile, ui.Dockerfile,
-mlflow.Dockerfile — langage Python 3.10-slim, dépendances via requirements.txt), et de
-l'environnement d'exécution (ports, variables d'environnement MLFLOW_TRACKING_URI/
-API_BASE_URL, volumes persistants ./mlflow_data et ./data/db). Un schéma d'architecture
-(composants + ports) serait utile ici, distinct du diagramme de flux de données ci-dessous.]`
+Langage et framework : Python 3.10 (images Docker `-slim`), backend FastAPI, frontend
+Streamlit, modèle XGBoost servi via MLflow Model Registry. Architecture à 5 composants,
+orchestrés par `docker-compose.yml` :
+
+| Service | Port | Image | Rôle |
+|---|---|---|---|
+| `mlflow` | 5000 | `mlflow.Dockerfile` | Tracking + registre de modèles |
+| `api` | 8000 | `Dockerfile` | API FastAPI (dépend de `mlflow`) |
+| `streamlit` | 8501 | `ui.Dockerfile` | Interface utilisateur (dépend de `api`) |
+| `prometheus` | 9090 | image officielle `prom/prometheus` | Scrape `GET /metrics` de l'API |
+| `grafana` | 3000 | image officielle `grafana/grafana` | Dashboards sur les métriques Prometheus |
+
+Environnement d'exécution : variables `MLFLOW_TRACKING_URI` (résolue à `http://mlflow:5000`
+entre conteneurs, `http://127.0.0.1:5000` en dev manuel) et `API_BASE_URL` (idem pour
+`streamlit` → `api`) permettent au même code de tourner en conteneur ou en local sans
+modification. Deux volumes persistants : `./mlflow_data:/app` (registre MLflow + artefacts —
+sans lui, tout serait perdu à chaque rebuild) et `./data/db:/app/data/db` (base SQLite). Toutes
+les dépendances sont épinglées à une version exacte dans `requirements.txt` (cf. `RapportE_3.md`,
+C13) — une installation stricte donne systématiquement le même environnement.
 
 ### 2.2 Choix techniques et démarche éco-responsable
 
@@ -284,12 +345,22 @@ cochée — vérifié dans `views/mes_donnees.py` et testé par
 
 ### 4.2 Recoupement avec C9/C10
 
-`[À COMPLÉTER : ce chapitre recoupe largement C9 (OWASP, déjà traité dans RapportE_3.md) et
-C10 (composants Streamlit, gestion des rôles/droits d'accès via st.navigation, déjà traité
-dans RapportE_3.md). Ne pas dupliquer intégralement — renvoyer vers ces sections et ajouter ce
-qui est spécifique à C17 : validation de formulaire (ex. panel_test.py, refus si une valeur
-reste à 0.0), tests unitaires/intégration sur les composants métier (tests/test_pipeline.py +
-tests/test_ui_integration.py).]`
+La sécurisation OWASP (`api/auth.py`, rate limiting, en-têtes de sécurité) est déjà détaillée en
+C9 (`RapportE_3.md`, 1.2) et la gestion des rôles/droits d'accès via `st.navigation` en C10
+(`RapportE_3.md`, 2.1) — non dupliquées ici. Ce qui est propre à C17 :
+
+- **Validation de formulaire** : `views/panel_test.py` refuse d'appeler l'API si une des 9
+  caractéristiques vaut encore `0.0` (message d'erreur explicite plutôt qu'un appel API voué à
+  échouer), et le bouton d'imputation (`mean_features.json`) ne remplace que les valeurs
+  effectivement manquantes.
+- **Comportements d'interface conditionnels** : `views/panel_test.py` adapte son affichage selon
+  le code HTTP renvoyé par l'OCR (200/202/206) ; `views/historique.py` colore la cellule
+  Potabilité sans jamais reposer sur la seule couleur (cf. C14, WCAG 1.4.1).
+- **Tests unitaires/intégration sur les composants métier et les accès** : 47 tests au total
+  (`tests/test_pipeline.py` + `tests/test_ui_integration.py`, cf. `RapportE_3.md` C9/C10/C12),
+  dont une part significative teste spécifiquement le contrôle d'accès par rôle
+  (`test_admin_route_forbidden_for_client_role`, `test_dashboard_measurements_forbidden_for_client`,
+  `test_rotate_key_forbidden_for_non_admin`, `test_ui_accueil_admin_forbidden_for_client`...).
 
 ### 4.3 Éco-conception de l'application
 
@@ -377,16 +448,90 @@ automatisé) et le déployer en production (resté un acte humain).
 
 ## 7. Difficultés rencontrées et conclusion
 
-`[À COMPLÉTER une fois C14 à C19 rédigées : reprendre les difficultés réelles propres à ce
-bloc (distinctes de celles déjà listées dans RapportE_3.md pour E3) et conclure sur
-l'ensemble C14-C19.]`
+**`README.md` inexploitable en l'état (C17).** Le fichier initial mélangeait une veille
+technologique sur MLflow et des commandes `curl` en vrac, sans même l'étape
+`pip install -r requirements.txt` en premier — un nouveau développeur qui l'aurait suivi
+littéralement aurait échoué à la première commande. Résolu par une réécriture complète
+(installation en premier, 2 options de lancement, tableau d'architecture) et le déplacement du
+contenu de veille vers `docs/veille_mlflow.md`, pour ne pas polluer un document censé rester un
+guide d'installation.
+
+**Aucune preuve d'éco-responsabilité ni d'éco-conception préexistante (C15, C17).** Une
+recherche explicite dans tout le dépôt n'a rien trouvé sur ces deux critères avant qu'on les
+traite. Plutôt que de rédiger une justification a posteriori générique, chaque affirmation a été
+vérifiée contre du code réel (images `-slim`, `@st.cache_data`, `@st.fragment`, filtrage côté
+serveur, absence de polling) et la question de l'intention d'origine posée explicitement plutôt
+que supposée.
+
+**Aucun artefact de méthode agile trouvé initialement (C16).** Une vérification via l'API
+GitHub (issues, milestones, Projects) n'a rien donné — ni board, ni backlog visible depuis le
+dépôt. La preuve réelle (board Trello + Scrum solo hebdomadaire) n'est apparue qu'après coup, et
+son premier lien de partage était un lien **d'invitation** (permettant de rejoindre le board),
+pas un lien de consultation — remplacé par un lien public en lecture seule avant d'être intégré
+au rapport, pour ne pas exposer un board personnel modifiable publiquement.
+
+**Terminologie "pré-production" à préciser (C15).** Ce projet n'a pas de serveur de staging
+distant séparé. Plutôt que de laisser sous-entendre l'inverse, le rapport assume explicitement
+qu'il s'agit d'un pré-production **local** — justifié par le mode d'exécution (images packagées
+sans rechargement à chaud, orchestrées ensemble) et non par l'emplacement.
+
+**Étape de livraison initialement incomplète (C19).** Le premier ajout à la CI ne publiait que
+l'image API sur `ghcr.io`. Étendue aux 3 images du projet (mlflow, streamlit) après coup, avec
+vérification réelle avant intégration (builds locaux des 2 nouveaux Dockerfiles testés avec
+succès), puis confirmation du run CI réel vert de bout en bout et des 3 images effectivement
+publiées et consultables.
+
+**Conclusion.** L'application dans son ensemble (pas seulement le modèle, cf. E3) est
+analysée depuis le besoin fonctionnel (C14 : MCD/MPD Merise, parcours utilisateurs, 12 user
+stories tracées vers des tests, accessibilité WCAG intégrée nativement), conçue techniquement
+(C15 : architecture documentée, choix de sobriété assumés, diagramme de flux de données, preuve
+de concept vérifiée en exécution réelle), pilotée avec une méthode adaptée au contexte solo
+(C16 : Scrum hebdomadaire, board Trello vérifiable), développée dans le respect des
+spécifications et de l'éco-conception (C17), testée automatiquement (C18) et livrée en continu
+jusqu'à la publication réelle des images Docker (C19). Chaque affirmation de ce rapport a été
+revérifiée contre des preuves d'exécution réelles plutôt que des affirmations déclarées, avec
+plusieurs corrections apportées en cours de route (README, incohérences de comptage,
+placeholders obsolètes).
 
 ---
 
 ## Annexe : préparation de la soutenance orale (15 min)
 
-`[À COMPLÉTER : repo Git, scénario de démonstration, minutage, questions probables du jury —
-même structure que l'annexe de RapportE_3.md.]`
+- **Repo Git accessible en amont** : https://github.com/Sonicario49/waterflow2
+- **Démonstration prévue** : (1) montrer `docs/Slidesupport/MCD.txt`/`MPD.txt` et une story de
+  `docs/user_stories.md` avec son test associé ouvert côte à côte, (2) montrer le board Trello
+  en direct (colonnes, cartes taguées par compétence), (3) `docker compose up --build` et
+  vérifier les 5 services + `http://localhost:8000/health`, (4) montrer les 3 images publiées
+  sur `github.com/Sonicario49/waterflow2/pkgs/container/waterflow2-api` (et mlflow/streamlit).
+- **Minutage suggéré** : 2 min contexte, puis ~2-3 min par compétence (C14 à C19), 1 min
+  conclusion.
+
+**Questions probables du jury et réponses préparées :**
+
+**Q : Pourquoi aucune maquette visuelle (Figma, wireframe) ?**
+Les spécifications d'interface ont été portées par les scénarios d'utilisation détaillés de
+`docs/user_stories.md` (quel champ, quel bouton, quel comportement) combinés aux flowcharts de
+navigation — choix assumé de ne pas produire un artefact de conception séparé pour un projet
+solo à ce stade, plutôt qu'un oubli non documenté.
+
+**Q : Un Scrum solo, avec les 3 rôles endossés par la même personne — en quoi c'est un vrai
+Scrum ?**
+La structure (sprints réguliers, backlog priorisé, revue + planification à cadence fixe,
+board Kanban avec colonnes reflétant le cycle de vie réel d'une tâche) est respectée ; ce qui
+change par rapport à un Scrum d'équipe, c'est qu'une seule personne porte les 3 casquettes —
+adaptation explicitement assumée dans le rapport, pas présentée comme un vrai Scrum d'équipe.
+
+**Q : "Pré-production" alors qu'il n'y a pas de serveur distant — n'est-ce pas trompeur ?**
+Non, si le terme est précisé (ce que fait le rapport) : ce qui distingue la pré-production du
+développement ici n'est pas l'emplacement mais le mode d'exécution — images packagées, sans
+rechargement à chaud, orchestrées ensemble comme un vrai déploiement le ferait, par opposition
+au mode `--reload` lancé à la main service par service.
+
+**Q : Les images Docker publiées servent à quoi concrètement si le déploiement reste manuel ?**
+Elles rendent l'artefact prêt à être déployé n'importe où qui sait tirer une image Docker (un
+VPS, Render, un cluster) sans avoir à rebuild depuis les sources — la publication (automatisée)
+et le déploiement (décision humaine, pull request revue) sont deux étapes volontairement
+séparées.
 
 ---
 
