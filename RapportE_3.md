@@ -638,6 +638,9 @@ Actions à chaque déclenchement) :
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -659,6 +662,14 @@ jobs:
         run: docker build -t waterflow2-api:${{ github.sha }} .
       - name: Build full docker-compose stack (mlflow + api + streamlit)
         run: docker compose build
+      - name: "Push Docker image to GitHub Container Registry (delivery)"
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
+          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:latest
+          docker push ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
+          docker push ghcr.io/sonicario49/waterflow2-api:latest
 ```
 
 Chaque étape est bloquante (comportement par défaut de GitHub Actions) : si l'une
@@ -700,29 +711,43 @@ et comparaison du F1-score à un seuil minimal (0.50) — sortie réelle déjà 
 4.3, `OK : F1-score 0.5868 >= seuil minimal 0.5`, exit code 0. Les deux étapes
 s'exécutent donc sans erreur, dans cet ordre, avant le packaging.
 
-### 5.4 Packaging
+### 5.4 Packaging et livraison
 
 Deux étapes de packaging suivent la validation : `docker build` de l'image API seule
 (`Dockerfile`, `FROM python:3.10-slim`, copie de `api/` et de `data/db/`), puis
 `docker compose build` qui construit les 3 images du projet (`mlflow.Dockerfile`,
-`Dockerfile`, `ui.Dockerfile`) définies dans `docker-compose.yml`. Ces deux étapes
-ferment la chaîne CI ; il n'y a volontairement pas d'étape de publication sur un
-registre d'images ni de déploiement automatique — la mise en production reste une
-pull request revue et fusionnée manuellement (pratique d'équipe documentée dans
-`docs/CI_CD.md`, pas une étape automatisée de `ci.yml`).
+`Dockerfile`, `ui.Dockerfile`) définies dans `docker-compose.yml`. Une troisième
+étape, de livraison, suit : publication de l'image API sur GitHub Container Registry
+(`ghcr.io/sonicario49/waterflow2-api`, tags `<sha>` et `latest`), exécutée uniquement
+une fois le packaging validé, et uniquement sur push vers `main`
+(`if: github.ref == 'refs/heads/main'`) — jamais sur une branche de fonctionnalité ou
+une PR en cours de revue. Authentification via `GITHUB_TOKEN`, fourni automatiquement
+par GitHub Actions (`permissions: packages: write` déclaré au niveau du job), aucun
+secret à configurer manuellement.
+
+Le **déploiement** de cette image (la faire tourner en production, ex. Render, un
+VPS) reste volontairement un acte manuel distinct de la publication : la mise en
+production applicative continue de passer par une pull request revue et fusionnée à
+la main (pratique documentée dans `docs/CI_CD.md`). Distinction assumée : publier un
+artefact (désormais automatisé) n'est pas la même chose que le déployer (resté
+manuel).
 
 ### 5.5 Documentation de la chaîne
 
 `docs/CI_CD.md` (versionné dans le dépôt Git distant) couvre : l'outil retenu et sa
-justification, les déclencheurs, un tableau détaillant chacune des 8 étapes (ce
-qu'elle fait, quelle compétence RNCP elle sert), ce qui est volontairement laissé
-manuel (livraison), la procédure d'installation/reproduction en local (les 5
-commandes de la chaîne, exécutables une à une hors CI), la configuration (fichier
-unique, aucun secret requis, cache pip), l'historique d'exécution (runs verts
-consultables sur `github.com/Sonicario49/waterflow2/actions`) et une limite connue
-assumée (`requirements.txt` non verrouillé en version, ayant déjà causé un écart de
-comportement documenté dans `tests/bugTrouvé_README.md`, incident 2). Document
-Markdown, format texte structuré compatible avec les lecteurs d'écran.
+justification, les déclencheurs, un tableau détaillant chacune des 9 étapes (ce
+qu'elle fait, quelle compétence RNCP elle sert), ce qui reste volontairement manuel
+(le déploiement, pas la publication), la procédure d'installation/reproduction en
+local (les 5 commandes de la chaîne, exécutables une à une hors CI, l'étape de
+publication `ghcr.io` mise à part — non reproductible sans authentification), la
+configuration (fichier unique, aucun secret à configurer manuellement, cache pip),
+l'historique d'exécution (runs verts
+consultables sur `github.com/Sonicario49/waterflow2/actions`) et une limite
+initialement identifiée puis corrigée (`requirements.txt` ne verrouillait aucune
+version, ayant déjà causé un écart de comportement documenté dans
+`tests/bugTrouvé_README.md`, incident 2 — chaque dépendance est désormais épinglée
+à une version exacte, vérifiée fonctionnelle). Document Markdown, format texte
+structuré compatible avec les lecteurs d'écran.
 
 `[Capture d'écran à insérer : run CI/CD réussi sur l'onglet Actions de GitHub, les 8
 étapes vertes]`

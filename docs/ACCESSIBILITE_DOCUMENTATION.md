@@ -2,8 +2,9 @@
 
 Ce document couvre l'accessibilité du **format** des livrables documentaires du projet
 (`README.md`, `tests/test_README.md`, `tests/bugTrouvé_README.md`,
-`docs/user_stories.md`, `docs/parcours_utilisateurs.md`, `docs/CI_CD.md`, `docs/MONITORING.md`),
-et sert de preuve pour les critères d'audit associés (C9, C11, C12, C13, C17, C18, C19). Pour
+`docs/user_stories.md`, `docs/parcours_utilisateurs.md`, `docs/CI_CD.md`, `docs/MONITORING.md`,
+`docs/diagramme_flux_donnees.md`, `docs/veille_mlflow.md`),
+et sert de preuve pour les critères d'audit associés (C9, C11, C12, C13, C15, C17, C18, C19). Pour
 l'accessibilité de l'**application** elle-même (UI Streamlit), voir les critères WCAG intégrés
 dans `docs/user_stories.md`.
 
@@ -22,14 +23,15 @@ code, vrais tableaux) plutôt qu'une mise en forme purement visuelle.
 ## Points vérifiés
 
 - **Hiérarchie des titres respectée, sans saut de niveau** (toujours H1 → H2 → H3) : vérifié sur
-  les 7 fichiers ci-dessus. Une hiérarchie cohérente permet une navigation par titres au clavier
+  les 9 fichiers ci-dessus. Une hiérarchie cohérente permet une navigation par titres au clavier
   ou au lecteur d'écran (ex. touche `H` sous NVDA/JAWS).
 - **Aucune information transmise uniquement par une image ou une couleur** : la documentation ne
   contient aucune image sans texte équivalent. Les diagrammes de parcours utilisateurs
-  (`docs/parcours_utilisateurs.md`) sont écrits en Mermaid, donc **du texte brut lisible tel
-  quel** par un lecteur d'écran (`flowchart TD`, nœuds et flèches nommés explicitement) ; le rendu
-  graphique via [mermaid.live](https://mermaid.live) est une restitution optionnelle, pas le seul
-  moyen d'accéder à l'information. Le schéma d'architecture ASCII de `docs/MONITORING.md` est lui
+  (`docs/parcours_utilisateurs.md`) et de flux de données (`docs/diagramme_flux_donnees.md`)
+  sont écrits en Mermaid, donc **du texte brut lisible tel quel** par un lecteur d'écran
+  (`flowchart TD`/`flowchart LR`, nœuds et flèches nommés explicitement) ; le rendu graphique via
+  [mermaid.live](https://mermaid.live) est une restitution optionnelle, pas le seul moyen
+  d'accéder à l'information. Le schéma d'architecture ASCII de `docs/MONITORING.md` est lui
   aussi du texte brut, lisible sans rendu graphique.
 - **Liens avec un intitulé explicite** : aucun lien du type "cliquez ici" ou URL nue sans contexte
   (ex. `[mermaid.live](https://mermaid.live)`, jamais un lien qui ne se comprend pas hors contexte).

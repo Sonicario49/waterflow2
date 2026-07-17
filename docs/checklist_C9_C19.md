@@ -89,17 +89,17 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 ### C15 — Concevoir le cadre technique de l'application
 
 - [x] Les spécifications techniques rédigées couvrent l'architecture de l'application, ses dépendances et son environnement d'exécution (langage de programmation, framework, outils, etc.).
-- [ ] Les éventuels services (PaaS, SaaS, etc.) et prestataires ayant une démarche éco-responsable sont favorisés lors des choix techniques.
-- [ ] Les flux de données impliqués dans l'application sont représentés par un diagramme de flux de données.
+- [x] Les éventuels services (PaaS, SaaS, etc.) et prestataires ayant une démarche éco-responsable sont favorisés lors des choix techniques.
+- [x] Les flux de données impliqués dans l'application sont représentés par un diagramme de flux de données.
 - [x] La preuve de concept est accessible et fonctionnelle en environnement de pré-production.
-- [ ] La conclusion à l'issue de la preuve de concept donne un avis précis permettant une prise de décision sur la poursuite du projet.
+- [x] La conclusion à l'issue de la preuve de concept donne un avis précis permettant une prise de décision sur la poursuite du projet.
 
 ### C16 — Coordonner la réalisation technique (conduite agile / MLOps)
 
-- [ ] Les cycles, les étapes de chaque cycle, les rôles, les rituels et les outils de la méthode agile appliquée sont respectés dans sa mise en place et tout au long du projet.
-- [ ] Les outils de pilotage (tableau kanban, burndown chart, backlog, etc.) sont disponibles dans les conditions prévues par la méthode appliquée.
-- [ ] Les objectifs et les modalités des rituels sont partagés à toutes les parties prenantes et rappelés si besoin.
-- [ ] Les éléments de pilotage sont rendus accessibles à toutes les parties du projet et ce tout au long du projet, en accord avec les recommandations de la méthode de gestion de projet appliquée.
+- [x] Les cycles, les étapes de chaque cycle, les rôles, les rituels et les outils de la méthode agile appliquée sont respectés dans sa mise en place et tout au long du projet.
+- [x] Les outils de pilotage (tableau kanban, burndown chart, backlog, etc.) sont disponibles dans les conditions prévues par la méthode appliquée.
+- [x] Les objectifs et les modalités des rituels sont partagés à toutes les parties prenantes et rappelés si besoin.
+- [x] Les éléments de pilotage sont rendus accessibles à toutes les parties du projet et ce tout au long du projet, en accord avec les recommandations de la méthode de gestion de projet appliquée.
 
 ### C17 — Développer les composants techniques et les interfaces
 
@@ -109,7 +109,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] Les composants métier sont développés et fonctionnent comme prévu par les spécifications techniques et fonctionnelles.
 - [x] La gestion des droits d'accès à l'application ou à certains espaces de l'application est développée et respecte les spécifications fonctionnelles.
 - [x] Les flux de données sont intégrés dans le respect des spécifications techniques et fonctionnelles.
-- [ ] Les développements sont réalisés dans le respect des bonnes pratiques d'éco-conception d'une application (recommandations éco-index ou Green IT par exemple).
+- [x] Les développements sont réalisés dans le respect des bonnes pratiques d'éco-conception d'une application (recommandations éco-index ou Green IT par exemple).
 - [x] Les préconisations du top 10 OWASP sont implémentées dans l'application quand nécessaire.
 - [x] Des tests d'intégration ou unitaires couvrent au moins les composants métier et la gestion des accès.
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant.
@@ -131,7 +131,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] La documentation pour l'utilisation de la chaîne couvre toutes les étapes de la chaîne, les tâches et tous les déclencheurs disponibles.
 - [x] Le ou les fichiers de configuration de la chaîne sont correctement reconnus et exécutés par le système.
 - [x] La ou les étapes de packaging (compilation, minification, build de containers, etc.) de l'application sont intégrées à la chaîne et s'exécutent sans erreur.
-- [ ] L'étape de livraison (pull request par exemple) est intégrée et exécutée une fois la ou les étapes de packaging validées.
+- [x] L'étape de livraison (pull request par exemple) est intégrée et exécutée une fois la ou les étapes de packaging validées.
 - [x] Les sources de la chaîne sont versionnées et accessibles depuis le dépôt Git distant du projet d'application.
 - [x] La documentation de la chaîne de livraison continue couvre la procédure d'installation, de configuration et de test de la chaîne.
 - [x] La documentation est communiquée dans un format qui respecte les recommandations d'accessibilité.
