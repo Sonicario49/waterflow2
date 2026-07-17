@@ -121,10 +121,40 @@ document quitte l'infrastructure auto-hébergée, jamais l'identité du client.
 
 ### 2.4 Preuve de concept en environnement de pré-production
 
-`[À COMPLÉTER : la stack docker-compose.yml sert de preuve de concept — décrire comment la
-lancer (docker compose up --build), ce qui la rend "accessible et fonctionnelle" (5 services
-démarrés, ports exposés, healthcheck /health, modèle chargé depuis MLflow Production).
-Capture d'écran ou sortie de commande réelle à l'appui.]`
+**Précision de vocabulaire, assumée** : ce projet n'a pas de serveur distant de pré-production
+(staging) séparé — c'est un environnement de pré-production **local**. Ce qui justifie le terme
+n'est pas l'emplacement (un serveur différent), mais le **mode d'exécution** : contrairement à
+l'option "dev" du README (`uvicorn ... --reload`, services lancés à la main un par un, 3
+terminaux), la stack `docker-compose.yml` fait tourner les mêmes images Docker que celles
+publiées sur `ghcr.io` (cf. C13/C19), sans rechargement à chaud, orchestrées ensemble comme un
+vrai déploiement le ferait — c'est ce basculement qui constitue la preuve de concept : la
+démonstration que le système complet (modèle servi + API + UI + monitoring) fonctionne intégré,
+packagé, pas seulement "le code tourne sur ma machine en mode développement".
+
+5 services orchestrés ensemble (`mlflow`, `api`, `streamlit`, `prometheus`, `grafana`), lancée
+avec `docker compose up --build`. Exécution réelle, tous les services démarrés et vérifiés
+individuellement :
+
+```
+NAME                      SERVICE      STATUS
+waterflow2-api-1          api          Up 18 seconds
+waterflow2-grafana-1      grafana      Up 17 seconds
+waterflow2-mlflow-1       mlflow       Up 18 seconds
+waterflow2-prometheus-1   prometheus   Up 18 seconds
+waterflow2-streamlit-1    streamlit    Up 18 seconds
+
+GET http://localhost:8000/health   -> {"status":"healthy","model_loaded":true}
+GET http://localhost:5000          -> 200 (MLflow)
+GET http://localhost:8501          -> 200 (Streamlit)
+GET http://localhost:9090/-/healthy -> Prometheus Server is Healthy.
+GET http://localhost:3000/api/health -> {"database":"ok", ...} (Grafana)
+```
+
+Preuve croisée avec C11 (monitorage) : Prometheus voit bien l'API comme cible active
+(`GET /api/v1/targets` → `job=waterflow2, health=up, scrapeUrl=http://api:8000/metrics`), pas
+seulement un service démarré isolément — la chaîne complète (API → Prometheus) fonctionne de
+bout en bout. `model_loaded: true` confirme que l'API a bien chargé un modèle réel depuis le
+registre MLflow au démarrage, pas un stub.
 
 `[Capture d'écran à insérer : docker compose up --build réussi, tous les services up]`
 
@@ -301,10 +331,15 @@ au niveau de l'infrastructure (cf. C15, 2.2) :
 > - La documentation est communiquée dans un format qui respecte les recommandations
 >   d'accessibilité.
 
-`[À COMPLÉTER : recoupe directement C13 (déjà traité dans RapportE_3.md, section 5) — même
-pipeline .github/workflows/ci.yml, même docs/CI_CD.md. Renvoyer vers cette section plutôt que
-de tout réécrire ; ajouter uniquement l'angle propre à C18 (étape de test elle-même, pas le
-volet modèle/livraison déjà couvert en C13/C19).]`
+Cette compétence recoupe directement C13 (`RapportE_3.md`, section 5) : même chaîne
+`.github/workflows/ci.yml`, même documentation `docs/CI_CD.md`. L'angle propre à C18 porte
+spécifiquement sur l'étape "Run tests" : outil retenu (`pytest`, cohérent avec le reste de la
+stack Python du projet), étapes préalables nécessaires avant de pouvoir exécuter les tests
+(`Checkout` → `Set up Python` → `Install dependencies` → `Validate raw data`), et exécution
+réelle confirmée verte sur le dernier run (`6ba34ba`, vérifié via l'API GitHub : étape "Run
+tests (coverage gate: 80% minimum on api/ + data.db/)" → `completed`/`success`), avec le gate
+de couverture qui fait échouer la chaîne si elle retombe sous 80% (cf. C12, `RapportE_3.md`
+4.3).
 
 ---
 
@@ -326,13 +361,17 @@ volet modèle/livraison déjà couvert en C13/C19).]`
 > - La documentation est communiquée dans un format qui respecte les recommandations
 >   d'accessibilité.
 
-`[À COMPLÉTER : recoupe C13 (packaging Docker, déjà traité dans RapportE_3.md section 5.4) et
-souligne le point déjà documenté honnêtement : pas d'étape de publication/déploiement
-automatisée, la livraison reste une pull request revue manuellement (docs/CI_CD.md). Point de
-vigilance repris de l'ancien docs/checklist_C9_C19.md (désormais nettoyé) : vérifier si
-"l'étape de livraison (pull request)" doit être interprétée comme suffisante telle quelle, ou
-si le critère attend une automatisation de la PR elle-même (ex. action GitHub qui ouvre une PR
-automatiquement) — à clarifier avant de cocher.]`
+Cette compétence recoupe C13 (packaging Docker, `RapportE_3.md` section 5.4) et y ajoute une
+étape de livraison réellement automatisée : publication des 3 images du projet
+(`waterflow2-api`, `waterflow2-mlflow`, `waterflow2-streamlit`) sur GitHub Container Registry,
+exécutée uniquement une fois le packaging validé et uniquement sur push vers `main`. Confirmé
+en exécution réelle, pas seulement en configuration : le run `6ba34ba` est vert de bout en bout
+(11/11 étapes, vérifié via l'API GitHub), et les 3 images sont effectivement publiées et
+consultables (`github.com/Sonicario49/waterflow2/pkgs/container/waterflow2-{api,mlflow,streamlit}`).
+
+Le **déploiement** de ces images reste volontairement manuel (pull request revue et fusionnée à
+la main, cf. `docs/CI_CD.md`) — distinction assumée entre publier un artefact (désormais
+automatisé) et le déployer en production (resté un acte humain).
 
 ---
 

@@ -85,11 +85,11 @@ automatique de déploiement. Distinction assumée : *publier* des artefacts (aut
 ## Historique d'exécution
 
 Chaque push/PR sur ce projet a déclenché un run visible dans l'onglet **Actions** du dépôt
-(`github.com/Sonicario49/waterflow2/actions`). Les runs précédents (avant l'ajout des étapes de
-publication) sont verts de bout en bout, y compris les étapes de build Docker — les étapes de
-build MLflow/Streamlit et de publication sur `ghcr.io` (3 images) sont nouvelles, à confirmer
-vertes sur le prochain push vers `main`. Vérifié en local avant publication (`docker build`
-réussi pour `mlflow.Dockerfile` et `ui.Dockerfile`, images supprimées ensuite).
+(`github.com/Sonicario49/waterflow2/actions`). Run `6ba34ba` (le plus récent, premier à inclure
+les 11 étapes) confirmé vert de bout en bout via l'API GitHub — y compris "Build MLflow Docker
+image", "Build Streamlit Docker image" et "Push Docker images to GitHub Container Registry".
+Les 3 images sont publiées et consultables :
+`github.com/Sonicario49/waterflow2/pkgs/container/waterflow2-{api,mlflow,streamlit}`.
 
 ## Limite corrigée
 
