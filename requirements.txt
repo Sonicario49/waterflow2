@@ -3,6 +3,9 @@ bcrypt
 streamlit
 requests
 flask
+fastapi
+uvicorn
+python-multipart
 numpy
 xgboost
 scikit-learn

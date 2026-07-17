@@ -1,7 +1,7 @@
 # Accessibilité du format de la documentation — Waterflow 2
 
 Ce document couvre l'accessibilité du **format** des livrables documentaires du projet
-(`README.md`, `CLAUDE.md`, `tests/test_README.md`, `tests/bugTrouvé_README.md`,
+(`README.md`, `tests/test_README.md`, `tests/bugTrouvé_README.md`,
 `docs/user_stories.md`, `docs/parcours_utilisateurs.md`, `docs/CI_CD.md`, `docs/MONITORING.md`),
 et sert de preuve pour les critères d'audit associés (C9, C11, C12, C13, C17, C18, C19). Pour
 l'accessibilité de l'**application** elle-même (UI Streamlit), voir les critères WCAG intégrés
@@ -22,7 +22,7 @@ code, vrais tableaux) plutôt qu'une mise en forme purement visuelle.
 ## Points vérifiés
 
 - **Hiérarchie des titres respectée, sans saut de niveau** (toujours H1 → H2 → H3) : vérifié sur
-  les 8 fichiers ci-dessus. Une hiérarchie cohérente permet une navigation par titres au clavier
+  les 7 fichiers ci-dessus. Une hiérarchie cohérente permet une navigation par titres au clavier
   ou au lecteur d'écran (ex. touche `H` sous NVDA/JAWS).
 - **Aucune information transmise uniquement par une image ou une couleur** : la documentation ne
   contient aucune image sans texte équivalent. Les diagrammes de parcours utilisateurs

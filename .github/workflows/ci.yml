@@ -25,8 +25,8 @@ jobs:
       - name: Validate raw data (schema / missing values)
         run: python scripts/validate_data.py
 
-      - name: Run tests
-        run: python -m pytest
+      - name: "Run tests (coverage gate: 80% minimum on api/ + data.db/)"
+        run: python -m pytest --cov=api --cov=data.db --cov-report=term-missing --cov-fail-under=80
 
       - name: Train & validate model (F1-score gate)
         run: python scripts/validate_model.py

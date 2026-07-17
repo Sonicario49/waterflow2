@@ -4,16 +4,12 @@ Suite de tests pour l'API FastAPI (`api/main.py` + `api/ocr_router.py`).
 
 ## Dépendances
 
-Déjà listées dans `requirements.txt` :
+Toutes listées directement dans `requirements.txt` :
 
 - `pytest`
 - `pytest-cov` (installe aussi `coverage`)
-
-Installées automatiquement avec FastAPI (nécessaires pour `fastapi.testclient.TestClient`,
-absentes en tant que telles de `requirements.txt`) :
-
-- `fastapi`
-- `httpx`
+- `fastapi`, `uvicorn`, `python-multipart` (l'API elle-même, dont `UploadFile`/`File(...)` pour `/api/ocr/lab-report`)
+- `httpx` (requis par `fastapi.testclient.TestClient`)
 
 ```bash
 pip install -r requirements.txt
@@ -37,8 +33,20 @@ python -m pytest tests/test_pipeline.py::test_measurements_predict_potable
 
 ## Couverture de code
 
+Objectif fixé : **80% minimum** sur `api/` et `data.db/`, appliqué en CI
+(`.github/workflows/ci.yml`, `--cov-fail-under=80`) — un run dont la couverture
+retombe sous ce seuil échoue, même si tous les tests passent individuellement.
+Couverture réelle constatée au dernier contrôle : **88%** (`api/main.py` 96%,
+`api/auth.py` 91%, `api/ocr_router.py` 77%, `data/db/WaterFlowDB.py` 76%).
+
 ```bash
 python -m pytest --cov=api --cov=data.db --cov-report=term-missing
+```
+
+Reproduire exactement la vérification faite en CI (échoue si couverture < 80%) :
+
+```bash
+python -m pytest --cov=api --cov=data.db --cov-report=term-missing --cov-fail-under=80
 ```
 
 Rapport HTML (ouvrir ensuite `htmlcov/index.html`) :

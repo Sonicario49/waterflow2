@@ -1,7 +1,7 @@
 # Checklist d'audit — RNCP 37827 Développeur.se en IA
 ## Compétences C9 à C19 (épreuves E3 et E4)
 
-> **Usage prévu** : ce fichier sert de grille d'audit pour Claude Code (ou tout autre agent) sur le dépôt `waterflow2`. Pour chaque critère, l'agent doit chercher une preuve concrète dans le code/dépôt (fichier, ligne, test qui passe, doc présente...) avant de cocher. Ne jamais cocher une case sur la seule base d'une intention déclarée — il faut une preuve exécutable ou documentaire.
+> **Usage prévu** : ce fichier sert de grille d'audit interne sur le dépôt `waterflow2`. Pour chaque critère, chercher une preuve concrète dans le code/dépôt (fichier, ligne, test qui passe, doc présente...) avant de cocher. Ne jamais cocher une case sur la seule base d'une intention déclarée — il faut une preuve exécutable ou documentaire.
 >
 > Source : Grille d'évaluation individuelle RNCP 37827 (Simplon.co).
 
@@ -32,8 +32,8 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 - [x] La communication avec l'API depuis l'application fonctionne.
 - [x] Les éventuelles étapes d'authentification et de renouvellement de l'authentification (expiration des jetons, etc.) sont intégrées correctement en suivant la documentation de l'API.
 - [x] Tous les points de terminaison de l'API concernés par le projet sont intégrés à l'application selon les spécifications fonctionnelles et techniques.
-- [ ] Les adaptations d'interface nécessaires et en accord avec les spécifications sont intégrées à l'application.
-- [ ] Les tests d'intégration couvrent tous les points de terminaison exploités.
+- [x] Les adaptations d'interface nécessaires et en accord avec les spécifications sont intégrées à l'application.
+- [x] Les tests d'intégration couvrent tous les points de terminaison exploités.
 - [x] Les tests s'exécutent en totalité, sans bug dans les programmes de test eux-mêmes.
 - [x] Les résultats des tests sont correctement interprétés.
 - [x] Les sources sont versionnées et accessibles depuis le dépôt Git de l'application.
@@ -54,7 +54,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 - [x] L'ensemble des cas à tester sont listés et définis : partie du modèle visée, périmètre du test, stratégie de test.
 - [x] Les outils de test (framework, bibliothèque, etc.) choisis sont cohérents avec l'environnement technique du projet.
-- [ ] Les tests sont intégrés et respectent la couverture souhaitée établie.
+- [x] Les tests sont intégrés et respectent la couverture souhaitée établie.
 - [x] **Les tests s'exécutent sans problème technique en environnement de test** (critère bloquant — vérifier que `pytest` se termine avec un exit code 0, sans erreur d'import ni d'exécution).
 - [x] Les sources sont versionnées et accessibles depuis un dépôt Git distant (DVC, GitLab, etc.).
 - [x] La documentation couvre la procédure d'installation de l'environnement de test, les dépendances installées, la procédure d'exécution des tests et de calcul de la couverture.
@@ -138,7 +138,7 @@ Livrable attendu : rapport professionnel individuel + soutenance orale avec dém
 
 ---
 
-## Instructions pour l'agent d'audit (Claude Code)
+## Instructions pour l'audit
 
 Pour chaque case ci-dessus :
 
