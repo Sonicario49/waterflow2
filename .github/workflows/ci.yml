@@ -37,14 +37,22 @@ jobs:
       - name: Build API Docker image (packaging)
         run: docker build -t waterflow2-api:${{ github.sha }} .
 
+      - name: Build MLflow Docker image (packaging)
+        run: docker build -f mlflow.Dockerfile -t waterflow2-mlflow:${{ github.sha }} .
+
+      - name: Build Streamlit Docker image (packaging)
+        run: docker build -f ui.Dockerfile -t waterflow2-streamlit:${{ github.sha }} .
+
       - name: Build full docker-compose stack (mlflow + api + streamlit)
         run: docker compose build
 
-      - name: "Push Docker image to GitHub Container Registry (delivery)"
+      - name: "Push Docker images to GitHub Container Registry (delivery)"
         if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
-          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:latest
-          docker push ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
-          docker push ghcr.io/sonicario49/waterflow2-api:latest
+          for image in api mlflow streamlit; do
+            docker tag waterflow2-$image:${{ github.sha }} ghcr.io/sonicario49/waterflow2-$image:${{ github.sha }}
+            docker tag waterflow2-$image:${{ github.sha }} ghcr.io/sonicario49/waterflow2-$image:latest
+            docker push ghcr.io/sonicario49/waterflow2-$image:${{ github.sha }}
+            docker push ghcr.io/sonicario49/waterflow2-$image:latest
+          done

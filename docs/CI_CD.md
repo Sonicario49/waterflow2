@@ -34,21 +34,24 @@ la fusion dans `main`.
 | 4 | `Validate raw data` | `python scripts/validate_data.py` — vérifie le schéma et l'absence de dérive sur `data/raw/water_potability.csv` | C13 |
 | 5 | `Run tests` | `python -m pytest` — 47 tests (API + intégration UI) | C18 |
 | 6 | `Train & validate model` | `python scripts/validate_model.py` — réentraîne (SMOTE + XGBoost) et vérifie le F1-score contre un seuil minimal (gate qualité) | C13 |
-| 7 | `Build API Docker image` | `docker build -t waterflow2-api:<sha> .` — packaging de l'API seule | C19 |
-| 8 | `Build full docker-compose stack` | `docker compose build` — packaging des 3 images (mlflow, api, streamlit) | C19 |
-| 9 | `Push Docker image to GitHub Container Registry` | `docker push ghcr.io/sonicario49/waterflow2-api:<sha>` + `:latest` — étape de **livraison**, exécutée uniquement une fois les étapes de packaging (7, 8) validées, et uniquement sur `main` (`if: github.ref == 'refs/heads/main'`), pas sur chaque branche/PR | C19 |
+| 7 | `Build API Docker image` | `docker build -t waterflow2-api:<sha> .` — packaging de l'API | C19 |
+| 8 | `Build MLflow Docker image` | `docker build -f mlflow.Dockerfile -t waterflow2-mlflow:<sha> .` — packaging du service MLflow | C19 |
+| 9 | `Build Streamlit Docker image` | `docker build -f ui.Dockerfile -t waterflow2-streamlit:<sha> .` — packaging de l'UI | C19 |
+| 10 | `Build full docker-compose stack` | `docker compose build` — reconstruit les 3 images via `docker-compose.yml`, validation croisée de la configuration compose elle-même | C19 |
+| 11 | `Push Docker images to GitHub Container Registry` | `docker push ghcr.io/sonicario49/waterflow2-{api,mlflow,streamlit}:<sha>` + `:latest` — étape de **livraison**, exécutée uniquement une fois les étapes de packaging (7-10) validées, et uniquement sur `main` (`if: github.ref == 'refs/heads/main'`), pas sur chaque branche/PR | C19 |
 
 Chaque étape est bloquante : si l'une échoue, les suivantes ne s'exécutent pas (comportement par
 défaut de GitHub Actions), et le commit est marqué en échec sur GitHub.
 
 ## Ce qui reste manuel (volontairement laissé ouvert)
 
-La chaîne livre désormais automatiquement l'image construite sur un registre (étape 9,
-`ghcr.io/sonicario49/waterflow2-api`), mais le **déploiement** de cette image (la faire tourner
-quelque part en production, ex. Render, un VPS, un cluster) reste un acte manuel distinct : la
-mise en production applicative continue de passer par une pull request revue et mergée à la main
-(10+ PR mergées ainsi sur ce projet, voir l'historique GitHub) plutôt que par un déclencheur
-automatique de déploiement. Distinction assumée : *publier* un artefact (automatisé) ≠ le
+La chaîne livre désormais automatiquement les 3 images construites sur un registre (étape 11,
+`ghcr.io/sonicario49/waterflow2-{api,mlflow,streamlit}`) — de quoi redéployer la stack complète,
+pas seulement l'API. Le **déploiement** de ces images (les faire tourner quelque part en
+production, ex. Render, un VPS, un cluster) reste un acte manuel distinct : la mise en
+production applicative continue de passer par une pull request revue et mergée à la main (10+
+PR mergées ainsi sur ce projet, voir l'historique GitHub) plutôt que par un déclencheur
+automatique de déploiement. Distinction assumée : *publier* des artefacts (automatisé) ≠ les
 *déployer* en production (manuel).
 
 ## Installation / reproduction en local
@@ -61,9 +64,11 @@ automatique de déploiement. Distinction assumée : *publier* un artefact (autom
    python -m pytest
    python scripts/validate_model.py
    docker build -t waterflow2-api:local .
+   docker build -f mlflow.Dockerfile -t waterflow2-mlflow:local .
+   docker build -f ui.Dockerfile -t waterflow2-streamlit:local .
    docker compose build
    ```
-   L'étape 9 (`docker push` vers `ghcr.io`) n'est pas reproductible telle quelle en local sans
+   L'étape 11 (`docker push` vers `ghcr.io`) n'est pas reproductible telle quelle en local sans
    authentification à GitHub Container Registry (`docker login ghcr.io`) — en CI, elle utilise le
    `GITHUB_TOKEN` fourni automatiquement par GitHub Actions, jamais un secret à configurer
    manuellement.
@@ -80,9 +85,11 @@ automatique de déploiement. Distinction assumée : *publier* un artefact (autom
 ## Historique d'exécution
 
 Chaque push/PR sur ce projet a déclenché un run visible dans l'onglet **Actions** du dépôt
-(`github.com/Sonicario49/waterflow2/actions`). Les runs récents (avant l'ajout de l'étape 9)
-sont verts de bout en bout, y compris les 2 étapes de build Docker — l'étape de publication sur
-`ghcr.io` est nouvelle, à confirmer verte sur le prochain push vers `main`.
+(`github.com/Sonicario49/waterflow2/actions`). Les runs précédents (avant l'ajout des étapes de
+publication) sont verts de bout en bout, y compris les étapes de build Docker — les étapes de
+build MLflow/Streamlit et de publication sur `ghcr.io` (3 images) sont nouvelles, à confirmer
+vertes sur le prochain push vers `main`. Vérifié en local avant publication (`docker build`
+réussi pour `mlflow.Dockerfile` et `ui.Dockerfile`, images supprimées ensuite).
 
 ## Limite corrigée
 

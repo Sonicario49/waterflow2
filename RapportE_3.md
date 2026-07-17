@@ -660,16 +660,22 @@ jobs:
         run: python scripts/validate_model.py
       - name: Build API Docker image (packaging)
         run: docker build -t waterflow2-api:${{ github.sha }} .
+      - name: Build MLflow Docker image (packaging)
+        run: docker build -f mlflow.Dockerfile -t waterflow2-mlflow:${{ github.sha }} .
+      - name: Build Streamlit Docker image (packaging)
+        run: docker build -f ui.Dockerfile -t waterflow2-streamlit:${{ github.sha }} .
       - name: Build full docker-compose stack (mlflow + api + streamlit)
         run: docker compose build
-      - name: "Push Docker image to GitHub Container Registry (delivery)"
+      - name: "Push Docker images to GitHub Container Registry (delivery)"
         if: github.ref == 'refs/heads/main'
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
-          docker tag waterflow2-api:${{ github.sha }} ghcr.io/sonicario49/waterflow2-api:latest
-          docker push ghcr.io/sonicario49/waterflow2-api:${{ github.sha }}
-          docker push ghcr.io/sonicario49/waterflow2-api:latest
+          for image in api mlflow streamlit; do
+            docker tag waterflow2-$image:${{ github.sha }} ghcr.io/sonicario49/waterflow2-$image:${{ github.sha }}
+            docker tag waterflow2-$image:${{ github.sha }} ghcr.io/sonicario49/waterflow2-$image:latest
+            docker push ghcr.io/sonicario49/waterflow2-$image:${{ github.sha }}
+            docker push ghcr.io/sonicario49/waterflow2-$image:latest
+          done
 ```
 
 Chaque étape est bloquante (comportement par défaut de GitHub Actions) : si l'une
@@ -713,29 +719,31 @@ s'exécutent donc sans erreur, dans cet ordre, avant le packaging.
 
 ### 5.4 Packaging et livraison
 
-Deux étapes de packaging suivent la validation : `docker build` de l'image API seule
-(`Dockerfile`, `FROM python:3.10-slim`, copie de `api/` et de `data/db/`), puis
-`docker compose build` qui construit les 3 images du projet (`mlflow.Dockerfile`,
-`Dockerfile`, `ui.Dockerfile`) définies dans `docker-compose.yml`. Une troisième
-étape, de livraison, suit : publication de l'image API sur GitHub Container Registry
-(`ghcr.io/sonicario49/waterflow2-api`, tags `<sha>` et `latest`), exécutée uniquement
-une fois le packaging validé, et uniquement sur push vers `main`
+Quatre étapes de packaging suivent la validation : `docker build` de chacune des 3
+images du projet séparément (API — `Dockerfile`, `FROM python:3.10-slim` — MLflow —
+`mlflow.Dockerfile` — et Streamlit — `ui.Dockerfile`), puis `docker compose build`
+qui les reconstruit toutes les 3 via `docker-compose.yml`, validant au passage que
+la configuration compose elle-même est cohérente. Une cinquième étape, de livraison,
+suit : publication des 3 images sur GitHub Container Registry
+(`ghcr.io/sonicario49/waterflow2-{api,mlflow,streamlit}`, tags `<sha>` et `latest`),
+exécutée uniquement une fois le packaging validé, et uniquement sur push vers `main`
 (`if: github.ref == 'refs/heads/main'`) — jamais sur une branche de fonctionnalité ou
 une PR en cours de revue. Authentification via `GITHUB_TOKEN`, fourni automatiquement
 par GitHub Actions (`permissions: packages: write` déclaré au niveau du job), aucun
-secret à configurer manuellement.
+secret à configurer manuellement. Les 3 images construisent sans erreur (vérifié en
+local avant intégration à la chaîne : `docker build` réussi pour les 3 Dockerfiles).
 
-Le **déploiement** de cette image (la faire tourner en production, ex. Render, un
+Le **déploiement** de ces images (les faire tourner en production, ex. Render, un
 VPS) reste volontairement un acte manuel distinct de la publication : la mise en
 production applicative continue de passer par une pull request revue et fusionnée à
-la main (pratique documentée dans `docs/CI_CD.md`). Distinction assumée : publier un
-artefact (désormais automatisé) n'est pas la même chose que le déployer (resté
+la main (pratique documentée dans `docs/CI_CD.md`). Distinction assumée : publier des
+artefacts (désormais automatisé) n'est pas la même chose que les déployer (resté
 manuel).
 
 ### 5.5 Documentation de la chaîne
 
 `docs/CI_CD.md` (versionné dans le dépôt Git distant) couvre : l'outil retenu et sa
-justification, les déclencheurs, un tableau détaillant chacune des 9 étapes (ce
+justification, les déclencheurs, un tableau détaillant chacune des 11 étapes (ce
 qu'elle fait, quelle compétence RNCP elle sert), ce qui reste volontairement manuel
 (le déploiement, pas la publication), la procédure d'installation/reproduction en
 local (les 5 commandes de la chaîne, exécutables une à une hors CI, l'étape de
