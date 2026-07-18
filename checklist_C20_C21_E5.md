@@ -37,11 +37,11 @@ Livrable attendu :
 
 > Attendu : apporter les modifications nécessaires au code de l'application et documenter les solutions pour en garantir le fonctionnement opérationnel.
 
-- [ ] La ou les causes du problème sont identifiées correctement.
-- [ ] Le problème est reproduit en environnement de développement.
-- [ ] La procédure de débogage du code est documentée depuis l'outil de suivi.
-- [ ] La solution documentée explicite chaque étape de la résolution et de son implémentation.
-- [ ] La solution est versionnée dans le dépôt Git du projet d'application (par exemple avec une merge request).
+- [x] La ou les causes du problème sont identifiées correctement.
+- [x] Le problème est reproduit en environnement de développement.
+- [x] La procédure de débogage du code est documentée depuis l'outil de suivi.
+- [x] La solution documentée explicite chaque étape de la résolution et de son implémentation.
+- [x] La solution est versionnée dans le dépôt Git du projet d'application (par exemple avec une merge request).
 
 ---
 
