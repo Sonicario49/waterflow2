@@ -169,7 +169,18 @@ def test_get_measurements_history(client, test_db):
     assert response.status_code == 200
     json_data = response.json()
     assert json_data["total_records"] == 1
-    assert json_data["history"][0]["measures"]["ph"] == POTABLE_FEATURES[0]
+
+    # Régression : chacune des 9 mesures doit être persistée à la bonne place
+    # (cf. incident IndexError sur turbidity, tests/bugTrouvé_README.md incident 4).
+    measures = json_data["history"][0]["measures"]
+    feature_order = [
+        "ph", "hardness", "solids", "chloramines", "sulfate",
+        "conductivity", "organic_carbon", "trihalomethanes", "turbidity",
+    ]
+    for index, key in enumerate(feature_order):
+        assert measures[key] == POTABLE_FEATURES[index], (
+            f"Mesure '{key}' incorrecte : attendu {POTABLE_FEATURES[index]}, obtenu {measures[key]}"
+        )
 
 
 # --- POST /api/clients (Admin uniquement) ----------------------------------

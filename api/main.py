@@ -280,7 +280,7 @@ def add_measurement(
         user_id=current_user.id,
         ph=f[0], hardness=f[1], solids=f[2], chloramines=f[3],
         sulfate=f[4], conductivity=f[5], organic_carbon=f[6],
-        trihalomethanes=f[7], turbidity=f[9],
+        trihalomethanes=f[7], turbidity=f[8],
         potability=pred, source="manuel",
     )
     db.close()
