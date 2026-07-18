@@ -165,6 +165,17 @@ complète revérifiée : 47/47 en local, CI verte sur `fix-measurements-indexerr
 (`29654803806`, sur `d122f7a`) est bien rouge (`conclusion=failure`) au même endroit. Branche de
 fix ensuite mergée dans `bug-e5`.
 
+**Rejeu contre la stack réelle (C20)** : ce même bug a ensuite été réintroduit temporairement
+dans le conteneur `docker-compose` en fonctionnement, avec du trafic soutenu généré sur la route
+cassée, pour vérifier que le monitorage système (cf. `docs/monitoring_systeme.md`) détecte
+réellement ce genre d'incident. Ce rejeu a révélé un second bug, distinct : `metrics_middleware`
+ne comptait pas les crashs non gérés dans les métriques Prometheus (corrigé dans le même commit
+que la remise en place du fix, voir `docs/monitoring_systeme.md` pour le détail). Une fois ce
+second correctif en place, l'alerte "Taux d'erreurs serveur élevé" est passée par les 3 états
+attendus (`Normal` → `Pending` → `Firing`) puis est revenue à `Normal` après redéploiement du
+fix — preuve que C20 et C21 se referment l'un sur l'autre en conditions réelles, pas seulement en
+théorie.
+
 ---
 
 ## Résultat final

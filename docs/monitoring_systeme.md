@@ -43,6 +43,18 @@ sans erreur contre Prometheus (`GET /api/prometheus/grafana/api/v1/rules` → `h
 3 règles, `state: inactive` en fonctionnement normal — aucune des 3 conditions n'est
 actuellement dépassée).
 
+**Déclenchement réel vérifié, pas seulement l'évaluation** : en rejouant l'incident 4
+(`tests/bugTrouvé_README.md`, `IndexError` sur `/api/measurements`) contre la stack
+`docker-compose` réelle et en générant du trafic soutenu sur la route cassée, l'alerte "Taux
+d'erreurs serveur élevé" est passée par les 3 états attendus — `Normal` → `Pending` → `Firing` —
+puis est revenue à `Normal` une fois le correctif redéployé. Cet essai a révélé un vrai angle
+mort au passage : `metrics_middleware` n'incrémentait `http_requests_total` qu'*après*
+`await call_next(request)`, donc jamais pour une exception non gérée (`IndexError`, par
+opposition à `HTTPException`) qui remonte sans jamais produire de réponse à ce niveau — les
+crashs bruts étaient invisibles pour Prometheus, contrairement aux erreurs volontaires
+(`401`/`403`/`422`/`503`). Corrigé par un `try`/`finally` autour de `call_next` (`api/main.py`),
+sans changer la réponse renvoyée au client — seulement l'observabilité du crash.
+
 **Canal de notification** : les règles utilisent le contact point par défaut de Grafana pour cet
 environnement local de démonstration — aucune intégration Slack/email/SMS réelle n'a été
 câblée, ce qui n'aurait aucune valeur de preuve sans un vrai destinataire à prévenir. En
