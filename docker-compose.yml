@@ -51,3 +51,7 @@ services:
       - prometheus
     ports:
       - "3000:3000"
+    volumes:
+      # Provisionne automatiquement la source de donnees Prometheus et les regles
+      # d'alerte (grafana/provisioning/) au demarrage, sans configuration manuelle.
+      - ./grafana/provisioning:/etc/grafana/provisioning
