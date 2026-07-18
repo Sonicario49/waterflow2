@@ -36,7 +36,7 @@ python -m pytest tests/test_pipeline.py::test_measurements_predict_potable
 Objectif fixé : **80% minimum** sur `api/` et `data.db/`, appliqué en CI
 (`.github/workflows/ci.yml`, `--cov-fail-under=80`) — un run dont la couverture
 retombe sous ce seuil échoue, même si tous les tests passent individuellement.
-Couverture réelle constatée au dernier contrôle : **88%** (`api/main.py` 96%,
+Couverture réelle constatée au dernier contrôle : **87%** (`api/main.py` 94%,
 `api/auth.py` 91%, `api/ocr_router.py` 77%, `data/db/WaterFlowDB.py` 76%).
 
 ```bash

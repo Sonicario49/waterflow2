@@ -225,7 +225,7 @@ registre MLflow au démarrage, pas un stub.
 viabilité technique réelle et mesurée, pas seulement déclarée : pipeline de bout en bout
 fonctionnel (extraction manuelle ou OCR → prédiction → persistance → restitution), sécurité
 applicative posée (clé API hachée, rôles, rate limiting, en-têtes de sécurité, RGPD), 47/47
-tests passés avec 88% de couverture, et une chaîne CI/CD verte de bout en bout (validation des
+tests passés avec 87% de couverture, et une chaîne CI/CD verte de bout en bout (validation des
 données, tests, réentraînement/validation du modèle, packaging Docker) — cf. `RapportE_3.md`,
 C9-C13. La performance du modèle (F1 = 0.5868, seuil de décision à 0.37) reste modeste mais
 suffisante pour un premier déploiement encadré, avec une lecture assumée du compromis
@@ -233,7 +233,7 @@ precision/recall (préférer un faux négatif "non potable" à un faux négatif 
 
 Trois conditions concrètes avaient été identifiées avant un passage en production réelle. La
 première est désormais résolue : les versions de `requirements.txt` sont verrouillées (`==`)
-sur le jeu vérifié fonctionnel (47/47 tests, couverture 88%), après qu'un écart de version a
+sur le jeu vérifié fonctionnel (47/47 tests, couverture 87%), après qu'un écart de version a
 déjà causé un incident réel documenté (`tests/bugTrouvé_README.md`, incident 2). Deux
 conditions restent ouvertes : (1) retirer le champ `ocr_raw_text` de la réponse
 `POST /api/ocr/lab-report`, actuellement renvoyé en clair avec un commentaire

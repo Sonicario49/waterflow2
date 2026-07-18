@@ -366,7 +366,7 @@ FastAPI (Waterflow 2)          Prometheus              Grafana
 
 Choix motivé par le contexte technique du projet : l'API est déjà en Python/FastAPI,
 `prometheus-client` (déjà dans `requirements.txt`) s'y intègre nativement en quelques
-lignes (`api/main.py:20,32-37,81,84-95`), sans agent externe à déployer ; Prometheus
+lignes (`api/main.py:20,32-37,81,84-102`), sans agent externe à déployer ; Prometheus
 et Grafana sont tous deux packagés comme services `docker-compose.yml` du projet
 (pas d'infrastructure supplémentaire à provisionner), et le couple est un standard de
 fait pour la supervision d'API HTTP, ce qui limite la charge d'apprentissage pour
@@ -382,11 +382,21 @@ HTTP_LATENCY = Histogram("http_request_duration_seconds", "Request duration", ["
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     t0 = time.time()
-    response = await call_next(request)
-    HTTP_LATENCY.labels(endpoint=request.url.path).observe(time.time() - t0)
-    HTTP_REQUESTS.labels(method=request.method, endpoint=request.url.path, status=response.status_code).inc()
-    return response
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    finally:
+        HTTP_LATENCY.labels(endpoint=request.url.path).observe(time.time() - t0)
+        HTTP_REQUESTS.labels(method=request.method, endpoint=request.url.path, status=status_code).inc()
 ```
+
+Le `try`/`finally` (et le `status_code = 500` par défaut) n'est pas la version d'origine : un
+gate découvert pendant l'épreuve E5 (`RapportE_5.md`, C20) a montré qu'une exception non gérée
+(ex. `IndexError`) ne produit jamais de `response` à ce niveau — sans ce correctif, ce genre de
+crash restait invisible pour Prometheus, contrairement aux erreurs volontaires
+(`HTTPException`). Corrigé sans changer la réponse HTTP renvoyée au client.
 
 `app.mount("/metrics", make_asgi_app())` expose ces métriques en clair au format
 Prometheus, scrapées toutes les 15 secondes selon `prometheus.yml` :
@@ -557,20 +567,24 @@ Name                     Stmts   Miss  Cover   Missing
 ------------------------------------------------------
 api\auth.py                 33      3    91%   41-42, 56
 api\logging_config.py       21      0   100%
-api\main.py                220      9    96%   141-142, 155-156, 190, 210-211, 269, 494
+api\main.py                223     13    94%   56-59, 148-149, 162-163, 197, 217-218, 276, 501
 api\ocr_router.py          108     25    77%   55, 67-68, 118-119, 158, 163-187, 195, 243, 247
 data\db\WaterFlowDB.py      90     22    76%   69, 73, 79-80, 92-97, 156-161, 164-168, 171-172, 200-201, 203-204, 206-207, 209-210, 214-215
 ------------------------------------------------------
-TOTAL                      472     59    88%
+TOTAL                      475     63    87%
 ```
 
-88% de couverture globale, marge confortable au-dessus du seuil de 80%. Les deux
-fichiers les moins couverts (`api/ocr_router.py` 77%, `data/db/WaterFlowDB.py` 76%)
-restent cohérents avec les limites déjà documentées ailleurs dans ce rapport : les
-branches d'erreur réseau spécifiques d'OCR.space (`ConnectionError`, `HTTPError`,
-`Timeout`, cf. C9) et certaines méthodes CRUD de `WaterFlowDB.py` non exercées par la
-suite actuelle (ex. `update_prediction`, `delete_prediction`, non utilisées par
-l'API aujourd'hui).
+87% de couverture globale, marge confortable au-dessus du seuil de 80%. `api/main.py` est
+légèrement redescendu (96% → 94%) après le durcissement de `metrics_middleware` en E5
+(`RapportE_5.md`, C20) : le `try`/`finally` ajouté pour capturer les crashs non gérés introduit
+quelques lignes que la suite actuelle n'exerce pas (aucun test ne déclenche volontairement une
+exception non gérée dans l'application testée — le seul cas réel de ce genre a été rejoué
+manuellement contre la stack `docker-compose`, hors suite `pytest`, cf. `RapportE_5.md` section
+1.5). Les autres fichiers les moins couverts (`api/ocr_router.py` 77%, `data/db/WaterFlowDB.py`
+76%) restent cohérents avec les limites déjà documentées ailleurs dans ce rapport : les branches
+d'erreur réseau spécifiques d'OCR.space (`ConnectionError`, `HTTPError`, `Timeout`, cf. C9) et
+certaines méthodes CRUD de `WaterFlowDB.py` non exercées par la suite actuelle (ex.
+`update_prediction`, `delete_prediction`, non utilisées par l'API aujourd'hui).
 
 ### 4.4 Documentation d'installation et d'exécution
 
@@ -711,7 +725,7 @@ future sans avoir à ouvrir le fichier).
 L'étape "Run tests" exécute la suite pytest complète vue en C9/C10/C12 (47 tests,
 API + intégration UI), avec un gate de couverture (`--cov-fail-under=80`, cf. C12,
 4.3) qui fait échouer le run si la couverture retombe sous 80% — mesure réelle
-actuelle : 88%. L'étape "Train & validate model" exécute
+actuelle : 87%. L'étape "Train & validate model" exécute
 `scripts/validate_model.py` (détail en 4.3) : réentraînement réel (SMOTE + XGBoost)
 et comparaison du F1-score à un seuil minimal (0.50) — sortie réelle déjà citée en
 4.3, `OK : F1-score 0.5868 >= seuil minimal 0.5`, exit code 0. Les deux étapes

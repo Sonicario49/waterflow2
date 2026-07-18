@@ -97,6 +97,6 @@ Les 3 images sont publiées et consultables :
 installer des versions plus récentes qu'un run précédent, ce qui avait déjà causé un écart de
 comportement observé entre environnements (voir `tests/bugTrouvé_README.md`, incident 2).
 Chaque dépendance est désormais épinglée à une version exacte (`==`), verrouillée sur les
-versions vérifiées fonctionnelles (47/47 tests, couverture 88%) : un `pip install -r
+versions vérifiées fonctionnelles (47/47 tests, couverture 87%) : un `pip install -r
 requirements.txt` installe systématiquement le même jeu de versions, quel que soit
 l'environnement ou la date d'exécution.
