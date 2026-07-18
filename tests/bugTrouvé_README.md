@@ -125,6 +125,48 @@ critères d'accessibilité WCAG 3.3.4 déjà spécifiés dans `notebooks/user_st
 
 ---
 
+## Incident 4 — `IndexError` sur `POST /api/measurements` (introduit volontairement, épreuve E5/C21)
+
+**Contexte** : contrairement aux incidents 1 à 3, ce bug n'a pas été rencontré par accident — il a
+été introduit délibérément sur la branche `bug-e5` pour la démonstration de la compétence C21
+(résolution d'un incident technique), conformément à la consigne de l'épreuve ("partez d'une
+application existante et introduisez-y une erreur, que vous corrigerez ensuite").
+
+**Bug introduit** (commit `d122f7a`) : dans `api/main.py`, `add_measurement` stockait
+`turbidity=f[9]` au lieu de `f[8]`. `FeaturesPayload` valide exactement 9 éléments (`features:
+list[float]`, `min_length=9, max_length=9`), donc les indices valides vont de 0 à 8 — `f[9]` est
+systématiquement hors limites.
+
+**Reproduit** : exécution locale de `pytest`, échec immédiat et systématique de 2 tests :
+
+```
+tests/test_pipeline.py::test_measurements_predict_potable PASSED -> FAILED
+tests/test_pipeline.py::test_measurements_predict_non_potable PASSED -> FAILED
+
+E       IndexError: list index out of range
+api\main.py:283: IndexError
+```
+
+Poussé sur `bug-e5`, confirmé rouge en CI également (run `29654803806`, commit `d122f7a`) — pas
+seulement une reproduction locale.
+
+**Diagnostic** : erreur d'indexation d'une ligne (décalage d'un cran sur le dernier champ). Aucun
+des indices ne peut dépasser 8 pour une liste de 9 éléments — `f[9]` lève systématiquement
+`IndexError`, pour toute requête valide, pas seulement dans certains cas limites.
+
+**Correction** (branche `fix-measurements-indexerror`, commit `52e463d`) : `f[9]` → `f[8]`.
+
+**Test renforcé** : `test_get_measurements_history` ne vérifiait auparavant que le champ `ph` de
+l'historique retourné. Il vérifie désormais que les 9 mesures sont persistées à la bonne
+position, une par une — ce test aurait détecté cette classe de bug (mauvais index sur
+n'importe lequel des 9 champs), pas seulement l'occurrence précise sur `turbidity`. Suite
+complète revérifiée : 47/47 en local, CI verte sur `fix-measurements-indexerror` (run
+`29654856038`, `conclusion=success`), confirmée via l'API GitHub — le run du commit du bug
+(`29654803806`, sur `d122f7a`) est bien rouge (`conclusion=failure`) au même endroit. Branche de
+fix ensuite mergée dans `bug-e5`.
+
+---
+
 ## Résultat final
 
 Run CI complet et vert sur `fix-ci-pytest` (id `28558610639`) : `Validate raw data` → `Run tests`
