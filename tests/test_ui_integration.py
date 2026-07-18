@@ -7,6 +7,12 @@ redirige requests.get/post/delete vers le vrai TestClient FastAPI : ces tests ex
 donc les vraies routes API (auth, DB de test, modèle factice), pas des réponses mockées
 à la main. Complète tests/test_pipeline.py, qui ne teste que l'API en direct, jamais
 la couche Streamlit qui la consomme.
+
+`default_timeout=15` sur chaque AppTest.from_file (au lieu des 3s par défaut) : un run CI
+réel a échoué avec `RuntimeError: AppTest script run timed out after 3(s)` sur
+test_ui_historique_shows_real_data alors que le même test passe en ~1s en local — le
+runner GitHub Actions est simplement plus lent/chargé qu'un poste de dev, pas un bug de
+l'application (reproduction locale : test vert, aucune anomalie fonctionnelle constatée).
 """
 
 from streamlit.testing.v1 import AppTest
@@ -16,7 +22,7 @@ POTABLE_FEATURES = [7.0, 204.8, 20791.3, 7.3, 368.5, 564.3, 10.3, 86.9, 2.9]
 
 def test_ui_panel_test_prediction(ui_client, test_db):
     """views/panel_test.py : le bouton de prédiction appelle réellement POST /api/measurements."""
-    at = AppTest.from_file("views/panel_test.py")
+    at = AppTest.from_file("views/panel_test.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -34,7 +40,7 @@ def test_ui_panel_test_prediction(ui_client, test_db):
 
 def test_ui_panel_test_requires_all_features(ui_client, test_db):
     """views/panel_test.py : refuse d'appeler l'API si une caractéristique est à 0.0."""
-    at = AppTest.from_file("views/panel_test.py")
+    at = AppTest.from_file("views/panel_test.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -52,7 +58,7 @@ def test_ui_historique_shows_real_data(ui_client, test_db):
     headers = {"X-API-Key": test_db["client_key"]}
     ui_client.post("/api/measurements", json={"features": POTABLE_FEATURES}, headers=headers)
 
-    at = AppTest.from_file("views/historique.py")
+    at = AppTest.from_file("views/historique.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["user_id"] = 2
@@ -65,7 +71,7 @@ def test_ui_historique_shows_real_data(ui_client, test_db):
 
 def test_ui_historique_empty_state(ui_client, test_db):
     """views/historique.py : message informatif si aucun prélèvement (pas d'erreur)."""
-    at = AppTest.from_file("views/historique.py")
+    at = AppTest.from_file("views/historique.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -78,7 +84,7 @@ def test_ui_historique_empty_state(ui_client, test_db):
 
 def test_ui_accueil_admin_shows_real_data(ui_client, test_db):
     """views/accueil_admin.py : liste réellement les comptes (GET /api/clients) et les logs (GET /api/audit-logs)."""
-    at = AppTest.from_file("views/accueil_admin.py")
+    at = AppTest.from_file("views/accueil_admin.py", default_timeout=15)
     at.session_state["api_key"] = test_db["admin_key"]
     at.run()
 
@@ -89,7 +95,7 @@ def test_ui_accueil_admin_shows_real_data(ui_client, test_db):
 
 def test_ui_accueil_admin_forbidden_for_client(ui_client, test_db):
     """views/accueil_admin.py : un rôle Client se voit refuser l'accès (403 relayé par l'API)."""
-    at = AppTest.from_file("views/accueil_admin.py")
+    at = AppTest.from_file("views/accueil_admin.py", default_timeout=15)
     at.session_state["api_key"] = test_db["client_key"]
     at.run()
 
@@ -99,7 +105,7 @@ def test_ui_accueil_admin_forbidden_for_client(ui_client, test_db):
 
 def test_ui_securite_admin_create_client(ui_client, test_db):
     """views/securite_admin.py : le formulaire de création appelle réellement POST /api/clients."""
-    at = AppTest.from_file("views/securite_admin.py")
+    at = AppTest.from_file("views/securite_admin.py", default_timeout=15)
     at.session_state["api_key"] = test_db["admin_key"]
     at.run()
 
@@ -114,7 +120,7 @@ def test_ui_securite_admin_create_client(ui_client, test_db):
 def test_ui_securite_admin_rotate_key(ui_client, test_db):
     """views/securite_admin.py : le bouton de rotation appelle réellement POST /api/clients/{id}/rotate-key,
     et l'ancienne clé du compte ciblé cesse ensuite de fonctionner (vérifié via l'API)."""
-    at = AppTest.from_file("views/securite_admin.py")
+    at = AppTest.from_file("views/securite_admin.py", default_timeout=15)
     at.session_state["api_key"] = test_db["admin_key"]
     at.run()
     assert not at.exception
@@ -138,7 +144,7 @@ def test_ui_securite_admin_rotate_key(ui_client, test_db):
 
 def test_ui_mes_donnees_shows_real_data(ui_client, test_db):
     """views/mes_donnees.py : affiche réellement les données du compte via GET /api/me."""
-    at = AppTest.from_file("views/mes_donnees.py")
+    at = AppTest.from_file("views/mes_donnees.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -150,7 +156,7 @@ def test_ui_mes_donnees_shows_real_data(ui_client, test_db):
 
 def test_ui_mes_donnees_delete_requires_confirmation(ui_client, test_db):
     """views/mes_donnees.py : le bouton de suppression reste désactivé sans coche de confirmation."""
-    at = AppTest.from_file("views/mes_donnees.py")
+    at = AppTest.from_file("views/mes_donnees.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -167,7 +173,7 @@ def test_ui_mes_donnees_delete_requires_confirmation(ui_client, test_db):
 
 def test_ui_mes_donnees_delete_with_confirmation(ui_client, test_db):
     """views/mes_donnees.py : coche + bouton appelle réellement DELETE /api/me."""
-    at = AppTest.from_file("views/mes_donnees.py")
+    at = AppTest.from_file("views/mes_donnees.py", default_timeout=15)
     at.session_state["logged_in"] = True
     at.session_state["username"] = "client_test"
     at.session_state["api_key"] = test_db["client_key"]
@@ -187,7 +193,7 @@ def test_ui_mes_donnees_delete_with_confirmation(ui_client, test_db):
 
 def test_ui_dashboard_qualite_shows_real_data(ui_client, test_db):
     """dashboard_qualite.py : les 3 onglets appellent réellement les routes /api/dashboard/*."""
-    at = AppTest.from_file("dashboard_qualite.py")
+    at = AppTest.from_file("dashboard_qualite.py", default_timeout=15)
     at.session_state["username"] = "analyst_test"
     at.session_state["role"] = "Quality_Analyst"
     at.session_state["api_key"] = test_db["analyst_key"]

@@ -83,16 +83,23 @@ app.mount("/metrics", make_asgi_app())
 
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
+    # try/finally : une exception non geree (ex. IndexError) ne produit jamais de
+    # `response` (call_next ne retourne rien, l'exception remonte directement) - sans
+    # le finally, ce genre de crash reste invisible pour Prometheus alors qu'il
+    # correspond bien a un vrai 500 cote client (converti plus haut par
+    # ServerErrorMiddleware). status_code=500 par defaut couvre precisement ce cas.
     t0 = time.time()
-    response = await call_next(request)
-    duration = time.time() - t0
-
-    HTTP_LATENCY.labels(endpoint=request.url.path).observe(duration)
-    HTTP_REQUESTS.labels(
-        method=request.method, endpoint=request.url.path, status=response.status_code
-    ).inc()
-
-    return response
+    status_code = 500
+    try:
+        response = await call_next(request)
+        status_code = response.status_code
+        return response
+    finally:
+        duration = time.time() - t0
+        HTTP_LATENCY.labels(endpoint=request.url.path).observe(duration)
+        HTTP_REQUESTS.labels(
+            method=request.method, endpoint=request.url.path, status=status_code
+        ).inc()
 
 
 # Pas de CORSMiddleware : l'UI Streamlit appelle cette API cote serveur (module
