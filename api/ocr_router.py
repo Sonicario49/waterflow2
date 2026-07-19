@@ -262,7 +262,6 @@ async def lab_report(
         },
         "missing_features": missing,
         "warnings": warnings,
-        "ocr_raw_text": raw_text,  # À retirer en production
     })
 
 

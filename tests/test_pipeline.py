@@ -376,23 +376,3 @@ def test_ocr_health(client):
     response = client.get("/api/ocr/health")
     assert response.status_code == 200
     assert response.json()["ocr_service"] == "ocr.space"
-
-
-# ─────────────────────────────────────────────────────────────
-# c. TESTS DE NON-RÉGRESSION (TNR)
-# ─────────────────────────────────────────────────────────────
-
-
-def test_model_non_regression_f1_score():
-    """Test de non-régression : s'assure que le F1-score ne rechute pas en dessous du minimum acceptable.
-
-    Ce test simule la validation de performance minimale requise avant le déploiement.
-    """
-    F1_SCORE_MINIMAL = 0.50
-
-    current_model_f1_score = 0.5868
-
-    assert current_model_f1_score >= F1_SCORE_MINIMAL, (
-        f"Régression détectée ! Le F1-score actuel ({current_model_f1_score}) "
-        f"est inférieur au seuil de non-régression fixé à {F1_SCORE_MINIMAL}"
-    )

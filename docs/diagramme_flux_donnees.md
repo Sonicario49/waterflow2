@@ -64,7 +64,7 @@ flowchart LR
 | API → DB (`users`) | `username`, hash SHA-256 de la clé | Oui — nom d'utilisateur, jamais la clé en clair |
 | API → DB (`prediction`) | 9 mesures physico-chimiques, résultat, `user_id` | Mesures non personnelles ; `user_id` relie la mesure à un compte |
 | API → DB (`audit_logs`) | Endpoint, méthode, IP, `user_id` | IP + `user_id` — anonymisé (`user_id = NULL`) à la suppression du compte (droit à l'oubli, `DELETE /api/me`) |
-| API → OCR.space | Contenu binaire du fichier labo | Potentiellement — dépend du contenu réel de la fiche (nom du laboratoire, etc.), voir limite documentée sur `ocr_raw_text` |
+| API → OCR.space | Contenu binaire du fichier labo | Potentiellement — dépend du contenu réel de la fiche (nom du laboratoire, etc.) ; le texte brut extrait n'est en tout cas jamais renvoyé au client (`ocr_raw_text` retiré de la réponse) |
 | API → MLflow | Aucune donnée personnelle (modèle, métriques agrégées) | Non |
 | API → Prometheus | Métriques agrégées (compteurs, histogrammes) | Non |
 

@@ -35,6 +35,9 @@ HTTP_REQUESTS = Counter(
 HTTP_LATENCY = Histogram(
     "http_request_duration_seconds", "Request duration", ["endpoint"]
 )
+AUDIT_LOG_FAILURES = Counter(
+    "audit_log_write_failures_total", "Total failures writing to the audit_logs table"
+)
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -161,6 +164,7 @@ async def access_log(request: Request, call_next):
         db.close()
     except Exception as e:
         logger.error("audit_log_write_failed", extra={"error": str(e)})
+        AUDIT_LOG_FAILURES.inc()
 
     return response
 

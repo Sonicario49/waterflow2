@@ -32,7 +32,7 @@ la fusion dans `main`.
 | 2 | `Set up Python` | Installe Python 3.10, active le cache pip (`requirements.txt`) | C18 |
 | 3 | `Install dependencies` | `pip install -r requirements.txt` | C18 |
 | 4 | `Validate raw data` | `python scripts/validate_data.py` — vérifie le schéma et l'absence de dérive sur `data/raw/water_potability.csv` | C13 |
-| 5 | `Run tests` | `python -m pytest` — 47 tests (API + intégration UI) | C18 |
+| 5 | `Run tests` | `python -m pytest` — 46 tests (API + intégration UI) | C18 |
 | 6 | `Train & validate model` | `python scripts/validate_model.py` — réentraîne (SMOTE + XGBoost) et vérifie le F1-score contre un seuil minimal (gate qualité) | C13 |
 | 7 | `Build API Docker image` | `docker build -t waterflow2-api:<sha> .` — packaging de l'API | C19 |
 | 8 | `Build MLflow Docker image` | `docker build -f mlflow.Dockerfile -t waterflow2-mlflow:<sha> .` — packaging du service MLflow | C19 |
@@ -97,6 +97,6 @@ Les 3 images sont publiées et consultables :
 installer des versions plus récentes qu'un run précédent, ce qui avait déjà causé un écart de
 comportement observé entre environnements (voir `tests/bugTrouvé_README.md`, incident 2).
 Chaque dépendance est désormais épinglée à une version exacte (`==`), verrouillée sur les
-versions vérifiées fonctionnelles (47/47 tests, couverture 87%) : un `pip install -r
+versions vérifiées fonctionnelles (46/46 tests, couverture 87%) : un `pip install -r
 requirements.txt` installe systématiquement le même jeu de versions, quel que soit
 l'environnement ou la date d'exécution.
