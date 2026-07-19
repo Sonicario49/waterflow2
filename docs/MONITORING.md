@@ -1,7 +1,9 @@
 # Monitoring — Waterflow 2
 
 Chaîne de supervision de l'API : Prometheus scrape les métriques exposées par FastAPI, Grafana
-les visualise en temps réel. Sert de preuve pour C11.
+les visualise en temps réel. Sert de preuve pour C20 (monitorage système, cf. Rapport E5) et de
+complément applicatif à C11 — le monitorage du modèle lui-même (métriques F1/accuracy) est
+documenté séparément dans `docs/MONITORING_MODELE.md`.
 
 ## Architecture
 
