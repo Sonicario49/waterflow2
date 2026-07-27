@@ -1,10 +1,9 @@
 import pickle
 import mlflow
 import mlflow.xgboost
-import numpy as np
 from xgboost import XGBClassifier
 from mlflow.tracking import MlflowClient
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, f1_score, fbeta_score, precision_score, recall_score
 from imblearn.over_sampling import SMOTE
 
 # ──────────────────────────────────────────────
@@ -47,15 +46,18 @@ print(f"Après SMOTE      — 0: {(y_train_resampled==0).sum()} | 1: {(y_train_r
 # Paramètres XGBoost optimisés
 # ──────────────────────────────────────────────
 params_xgb = {
-    "n_estimators":     300,
+    # Issus de scripts/tune_hyperparameters.py (recherche aleatoire, 30 essais,
+    # critere F0.5 au seuil 0.58) -- meilleur essai trouve, cf. run MLflow
+    # e2f517cbf3b24134a117c543fd067907 (experience "water_quality_tuning").
+    "n_estimators":     200,
     "max_depth":        5,
-    "learning_rate":    0.05,
-    "subsample":        0.8,
-    "colsample_bytree": 0.8,
-    "min_child_weight": 3,
-    "gamma":            0.2,
-    "reg_alpha":        0.1,
-    "reg_lambda":       1.5,
+    "learning_rate":    0.03,
+    "subsample":        1.0,
+    "colsample_bytree": 1.0,
+    "min_child_weight": 1,
+    "gamma":            0.5,
+    "reg_alpha":        0.3,
+    "reg_lambda":       3.0,
     "use_label_encoder": False,
     "eval_metric":      "logloss",
     "random_state":     42,
@@ -76,22 +78,24 @@ with mlflow.start_run(run_name="XGBoost_SMOTE_Optimise") as run:
  
     y_proba = model.predict_proba(X_val)[:, 1]
 
-    best_threshold = 0.5
-    best_f1 = 0
-    for threshold in np.arange(0.3, 0.7, 0.01):
-        y_pred_t = (y_proba >= threshold).astype(int)
-        f1 = f1_score(y_val, y_pred_t, zero_division=0)
-        if f1 > best_f1:
-            best_f1 = f1
-            best_threshold = threshold
+    # Seuil de decision fixe a 0.58, choisi deliberement plutot que par un
+    # balayage qui maximiserait le F1 : un balayage 0.30-0.70 maximisant le F1
+    # atterrit sur 0.37, qui produit plus de faux positifs "potable" (eau non
+    # potable classee a tort comme sure) que de faux negatifs a ce seuil -- pas
+    # le bon compromis pour un cas d'usage securitaire. 0.58 maximise le F0.5
+    # (poids 0.8 sur la precision contre 0.2 sur le recall dans la moyenne
+    # harmonique ponderee -- soit 4x plus de poids sur la precision) -- cf.
+    # scripts/tune_hyperparameters.py pour la recherche qui a mene a ce choix.
+    best_threshold = 0.58
 
-    print(f"\n   Meilleur seuil trouvé : {best_threshold:.2f}")
+    print(f"\n   Seuil de decision retenu : {best_threshold:.2f}")
 
     y_pred = (y_proba >= best_threshold).astype(int)
 
     metrics = {
         "accuracy":       accuracy_score(y_val, y_pred),
         "f1_score":       f1_score(y_val, y_pred, zero_division=0),
+        "f0.5_score":     fbeta_score(y_val, y_pred, beta=0.5, zero_division=0),
         "precision":      precision_score(y_val, y_pred, zero_division=0),
         "recall":         recall_score(y_val, y_pred, zero_division=0),
         "best_threshold": best_threshold,
@@ -114,8 +118,12 @@ with mlflow.start_run(run_name="XGBoost_SMOTE_Optimise") as run:
 # ──────────────────────────────────────────────
 #          Transition vers Production
 # ──────────────────────────────────────────────
-latest = client.get_latest_versions("water_quality_model")
-latest_version = latest[-1].version
+# get_latest_versions() sans filtre de stage renvoie une version "latest" par
+# stage existant (Production/None/Archived...), pas forcement celle de CE run --
+# on cherche explicitement la version enregistree par le run qu'on vient de
+# faire, via son run_id, pour ne jamais promouvoir la mauvaise version.
+new_version = client.search_model_versions(f"run_id='{run.info.run_id}'")[0]
+latest_version = new_version.version
 
 client.transition_model_version_stage(
     name="water_quality_model",

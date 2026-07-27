@@ -1,0 +1,72 @@
+services:
+  # Registre + tracking MLflow (equivalent du service "mlflow" de docker-compose.yml)
+  - type: web
+    name: sonicario49-waterflow2-mlflow
+    env: docker
+    dockerfilePath: ./mlflow.Dockerfile
+    dockerContext: .
+    plan: free
+    # Sans disque persistant (tier free) : le registre de modeles est reinitialise
+    # a chaque redeploiement/redemarrage -- il faut relancer scripts/experiment.py
+    # (pointe vers l'URL de ce service) apres chaque redeploiement de mlflow.
+    # Pour persister reellement (necessite un plan payant, ex. Starter) :
+    # decommenter le bloc ci-dessous et passer plan: starter.
+    # disk:
+    #   name: mlflow-data
+    #   mountPath: /app
+    #   sizeGB: 1
+
+  # API FastAPI qui sert le modele (equivalent du service "api")
+  - type: web
+    name: sonicario49-waterflow2-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Prefixe "sonicario49-" ajoute a chaque nom de service pour eviter toute
+      # collision avec un nom deja pris par un autre utilisateur Render. A
+      # reverifier quand meme apres le premier deploiement (l'URL reelle peut
+      # differer si ce prefixe lui-meme est deja pris, improbable mais possible).
+      - key: MLFLOW_TRACKING_URI
+        value: https://sonicario49-waterflow2-mlflow.onrender.com
+
+  # Interface Streamlit (equivalent du service "streamlit")
+  - type: web
+    name: sonicario49-waterflow2-streamlit
+    env: docker
+    dockerfilePath: ./ui.Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      # Idem : a verifier/ajuster selon l'URL reelle attribuee au service API.
+      - key: API_BASE_URL
+        value: https://sonicario49-waterflow2-api.onrender.com
+
+  # Monitorage systeme (equivalent du service "prometheus") -- scrape le
+  # service API en HTTPS via prometheus.render.yml (cf. Dockerfile dedie, le
+  # nom DNS interne Docker Compose "api:8000" ne resout pas sur Render).
+  - type: web
+    name: sonicario49-waterflow2-prometheus
+    env: docker
+    dockerfilePath: ./prometheus.Dockerfile
+    dockerContext: .
+    plan: free
+
+  # Dashboards/alertes (equivalent du service "grafana") -- provisioning
+  # (datasource, regles d'alerte, dashboards) cuit dans l'image au build,
+  # cf. grafana.Dockerfile. Identifiants par defaut admin/admin (comme en
+  # local) : a changer via GF_SECURITY_ADMIN_PASSWORD si expose publiquement
+  # au-dela d'une demo.
+  - type: web
+    name: sonicario49-waterflow2-grafana
+    env: docker
+    dockerfilePath: ./grafana.Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      # A verifier/ajuster apres le premier deploiement, comme les autres URLs
+      # inter-services de ce fichier.
+      - key: GF_SERVER_ROOT_URL
+        value: https://sonicario49-waterflow2-grafana.onrender.com

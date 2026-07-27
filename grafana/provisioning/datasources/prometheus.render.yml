@@ -1,0 +1,16 @@
+apiVersion: 1
+
+# Variante de prometheus.yml (meme dossier) pour le deploiement Render : pointe vers
+# l'URL publique HTTPS du service sonicario49-waterflow2-prometheus, au lieu du nom
+# DNS interne "prometheus:9090" qui n'existe qu'au sein du reseau Docker Compose
+# local. A ajuster si le nom du service Render differe (cf. render.yaml). Copiee
+# par-dessus datasources/prometheus.yml au build de l'image (cf. grafana.Dockerfile)
+# -- le fichier local reste inchange pour docker-compose.
+datasources:
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: https://sonicario49-waterflow2-prometheus.onrender.com
+    isDefault: true
+    editable: true

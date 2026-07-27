@@ -1,7 +1,7 @@
 # Monitorage du modèle — Waterflow 2
 
-Chaîne de supervision **du modèle** : les métriques de performance (F1, accuracy, precision,
-recall) loggées dans MLflow pour chaque version entraînée sont exposées en temps réel via l'API
+Chaîne de supervision **du modèle** : les métriques de performance (F0.5, F1, accuracy,
+precision, recall) loggées dans MLflow pour chaque version entraînée sont exposées en temps réel via l'API
 et restituées dans le Dashboard Qualité. Sert de preuve pour C11. À ne pas confondre avec
 `docs/monitoring_systeme.md` (preuve pour C20, cf. Rapport E5) qui supervise la **santé de
 l'application** (erreurs, latence, trafic) via Prometheus/Grafana — les deux s'appuient sur des
@@ -26,24 +26,26 @@ déjà nativement (`MlflowClient().get_run(run_id).data.metrics`).
 | Métrique | Ce qu'elle mesure | Interprétation pour ce projet |
 |---|---|---|
 | `accuracy` | Proportion globale de prédictions correctes | Trompeuse seule sur un jeu déséquilibré — gardée à titre indicatif, jamais comme seul critère de décision |
-| `f1_score` | Moyenne harmonique precision/recall | Métrique de référence retenue (cf. `scripts/experiment.py`, seuil balayé 0.30-0.70 pour la maximiser) |
-| `precision` | Part des prédictions "potable" réellement potables | Plus faible que le recall à ce seuil (0.48) : compromis quantifié, piste d'amélioration chiffrée à 0.50 déjà identifiée (cf. Rapport E3 C12) |
-| `recall` | Part des eaux réellement potables correctement identifiées | Plus élevé que la precision (0.75), conséquence directe du seuil retenu |
-| `best_threshold` | Seuil de décision retenu sur `predict_proba` | 0.37, issu d'un balayage qui maximise le F1 (cf. `scripts/experiment.py`) |
+| `f0.5_score` | Moyenne harmonique pondérée precision/recall (poids 0.8/0.2) | **Métrique de référence retenue** : la precision compte 4x plus que le recall, cohérent avec la priorité de minimiser les faux positifs "potable" (cf. Rapport E3 C12) |
+| `f1_score` | Moyenne harmonique precision/recall (poids égaux) | Gardée à titre indicatif seulement — ne reflète plus le critère de décision réel depuis le passage au F0.5 |
+| `precision` | Part des prédictions "potable" réellement potables | Volontairement priorisée sur le recall à ce seuil (0.67) — issue directement du choix F0.5 |
+| `recall` | Part des eaux réellement potables correctement identifiées | Plus faible que la precision (0.36), conséquence assumée du seuil retenu |
+| `best_threshold` | Seuil de décision retenu sur `predict_proba` | 0.58, issu d'une recherche aléatoire d'hyperparamètres qui maximise le F0.5 (cf. `scripts/tune_hyperparameters.py`, `scripts/experiment.py`) |
 
 Exécution réelle (`GET /api/dashboard/metrics`, version `Production` courante) :
 
 ```json
 {
-  "version": "2",
-  "run_id": "0967ba09f96c420c9279d95203883ff8",
+  "version": "5",
+  "run_id": "c47aaf3c2887498da160a4c05d3add4b",
   "stage": "Production",
   "metrics": {
-    "accuracy": 0.5899390243902439,
-    "f1_score": 0.5867895545314901,
-    "precision": 0.4835443037974684,
-    "recall": 0.74609375,
-    "best_threshold": 0.37000000000000005
+    "accuracy": 0.6829268292682927,
+    "f1_score": 0.4720812182741117,
+    "f0.5_score": 0.5754950495049505,
+    "precision": 0.6739130434782609,
+    "recall": 0.36328125,
+    "best_threshold": 0.58
   }
 }
 ```
@@ -80,11 +82,12 @@ bout) — même limite que le reste de l'application Streamlit, pas spécifique 
 
 ## Seuil d'alerte sur les métriques du modèle
 
-`scripts/validate_model.py` (`MIN_F1_SCORE = 0.50`) réentraîne le modèle et recalcule son F1 à
-chaque exécution CI (cf. C13) ; si le F1 recalculé tombe sous ce seuil, la chaîne échoue et
+`scripts/validate_model.py` (`MIN_F05_SCORE = 0.50`) réentraîne le modèle et recalcule son F0.5 à
+chaque exécution CI (cf. C13) ; si le F0.5 recalculé tombe sous ce seuil, la chaîne échoue et
 bloque la fusion — un seuil d'alerte réel sur une métrique du modèle, appliqué automatiquement
 avant toute promotion, plutôt qu'une notification passive sur un dashboard qui resterait
-consultée manuellement.
+consultée manuellement. Le gate a été délibérément changé de F1 vers F0.5 pour rester cohérent
+avec la métrique de référence réellement utilisée (cf. tableau ci-dessus).
 
 ## Testé dans un environnement dédié
 

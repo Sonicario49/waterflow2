@@ -54,12 +54,12 @@ async def lifespan(app: FastAPI):
     try:
         logger.info("model_loading", extra={"model_uri": model_uri})
         app.state.model = mlflow.xgboost.load_model(model_uri)
-        app.state.best_threshold = 0.37
+        app.state.best_threshold = 0.58
         logger.info("model_loaded", extra={"model_uri": model_uri})
     except Exception as e:
         logger.error("model_load_failed", extra={"model_uri": model_uri, "error": str(e)})
         app.state.model = None
-        app.state.best_threshold = 0.37
+        app.state.best_threshold = 0.58
     yield  # L'application tourne ici
     # (nettoyage éventuel au shutdown)
 

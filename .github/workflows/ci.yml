@@ -31,7 +31,7 @@ jobs:
       - name: "Run tests (coverage gate: 80% minimum on api/ + data.db/)"
         run: python -m pytest --cov=api --cov=data.db --cov-report=term-missing --cov-fail-under=80
 
-      - name: Train & validate model (F1-score gate)
+      - name: Train & validate model (F0.5-score gate)
         run: python scripts/validate_model.py
 
       - name: Build API Docker image (packaging)

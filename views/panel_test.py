@@ -51,6 +51,15 @@ mean_features = load_mean_features()
 if "current_features" not in st.session_state:
     st.session_state.current_features = [0.0] * 9
 
+ocr_feedback = st.session_state.pop("ocr_feedback", None)
+if ocr_feedback is not None:
+    if ocr_feedback["level"] == "warning":
+        st.warning(ocr_feedback["text"])
+        for warning in ocr_feedback["details"]:
+            st.caption(f"{warning}")
+    else:
+        st.success(ocr_feedback["text"])
+
 st.subheader("Génération des données")
 
 uploaded_file = st.file_uploader(
@@ -73,7 +82,7 @@ if uploaded_file is not None:
 
                 response = requests.post(URL_OCR, headers=headers, files=files)
 
-            if response.status_code in [200, 202, 206]:
+            if response.status_code in [200, 202]:
                 ocr_result = response.json()
                 
                 # S'adapter aux légères variantes de structures imbriquées (measurement ou measurement_payload)
@@ -92,14 +101,18 @@ if uploaded_file is not None:
                     float(features_ocr.get("turbidity") or 0.0),
                 ]
 
-                if response.status_code in [202, 206]:
-                    st.warning(
-                        " Document lu partiellement ! Certains champs requis n'ont pas été trouvés sur la fiche."
-                    )
-                    for warning in ocr_result.get("warnings", []):
-                        st.caption(f"{warning}")
+                if response.status_code == 202:
+                    st.session_state.ocr_feedback = {
+                        "level": "warning",
+                        "text": " Document lu partiellement ! Certains champs requis n'ont pas été trouvés sur la fiche.",
+                        "details": ocr_result.get("warnings", []),
+                    }
                 else:
-                    st.success(" Fiche analysée avec succès !")
+                    st.session_state.ocr_feedback = {
+                        "level": "success",
+                        "text": " Fiche analysée avec succès !",
+                        "details": [],
+                    }
                 st.rerun()
 
             else:
@@ -113,38 +126,17 @@ if uploaded_file is not None:
             )
 
 st.caption("Ou utilisez les échantillons du jeu de test :")
-col_btn1, col_btn2 = st.columns(2)
 
 if df_test is not None:
-    with col_btn1:
-        if st.button("Échantillon Aléatoire", use_container_width=True):
-            sample = df_test.sample(n=1).iloc[0]
-            st.session_state.current_features = sample.drop(
-                "Potability"
-            ).tolist()
-            st.toast(
-                f"Échantillon aléatoire chargé. Vraie Potabilité : {int(sample['Potability'])}"
-            )
-            st.rerun()
-
-    with col_btn2:
-        if st.button(
-            "Échantillon Potable Garanti (Y=1)",
-            use_container_width=True,
-            type="secondary",
-        ):
-            potable_samples = df_test[df_test["Potability"] == 1]
-            if not potable_samples.empty:
-                sample = potable_samples.sample(n=1).iloc[0]
-                st.session_state.current_features = sample.drop(
-                    "Potability"
-                ).tolist()
-                st.toast("Échantillon Potable chargé.")
-                st.rerun()
-            else:
-                st.warning(
-                    "Aucune ligne avec Potability = 1 présente dans le fichier."
-                )
+    if st.button("Échantillon Aléatoire", use_container_width=True):
+        sample = df_test.sample(n=1).iloc[0]
+        st.session_state.current_features = sample.drop(
+            "Potability"
+        ).tolist()
+        st.toast(
+            f"Échantillon aléatoire chargé. Vraie Potabilité : {int(sample['Potability'])}"
+        )
+        st.rerun()
 
 st.divider()
 

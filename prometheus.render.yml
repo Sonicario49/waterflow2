@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 15s
+
+# Variante de prometheus.yml pour le deploiement Render : cible l'URL publique HTTPS
+# du service sonicario49-waterflow2-api (deploye separement), au lieu du nom DNS
+# interne "api:8000" qui n'existe qu'au sein du reseau Docker Compose local. A
+# ajuster si le nom du service Render differe (cf. render.yaml).
+scrape_configs:
+  - job_name: 'waterflow2'
+    scheme: https
+    static_configs:
+      - targets:
+          - 'sonicario49-waterflow2-api.onrender.com'
+    metrics_path: '/metrics'

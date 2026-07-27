@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from data.db.WaterFlowDB import WaterFlowDB
 
-BEST_THRESHOLD = 0.37
+BEST_THRESHOLD = 0.58
 
 
 class DummyModel:
@@ -53,7 +53,7 @@ class FakeMlflowClient:
     factice sans appeler le vrai serveur MLflow (routes /api/dashboard/*)."""
 
     _VERSIONS = [FakeVersion("1", "fake-run-1", "Production")]
-    _METRICS = {"f1_score": 0.58, "accuracy": 0.75}
+    _METRICS = {"f0.5_score": 0.58, "accuracy": 0.75}
     _PARAMS = {"n_estimators": "200"}
 
     def get_latest_versions(self, name, stages=None):

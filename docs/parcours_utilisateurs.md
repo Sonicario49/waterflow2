@@ -31,7 +31,7 @@ flowchart TD
     Choice -->|Upload fiche labo image/PDF| OCR[Bouton : Analyser via l'OCR]
     OCR --> OCRcall[POST /api/ocr/lab-report]
     OCRcall -->|200 complet| Fields[Champs remplis]
-    OCRcall -->|202/206 partiel| Warn[Avertissement : champs manquants] --> Fields
+    OCRcall -->|202 partiel| Warn[Avertissement : champs manquants] --> Fields
     OCRcall -->|415/422/502/504| ErrOCR[Message d'erreur affiché]
 
     Choice -->|Échantillon aléatoire / potable garanti| Sample[Charge une ligne de X_test.csv] --> Fields

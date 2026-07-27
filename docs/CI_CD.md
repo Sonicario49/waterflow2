@@ -33,7 +33,7 @@ la fusion dans `main`.
 | 3 | `Install dependencies` | `pip install -r requirements.txt` | C18 |
 | 4 | `Validate raw data` | `python scripts/validate_data.py` — vérifie le schéma et l'absence de dérive sur `data/raw/water_potability.csv` | C13 |
 | 5 | `Run tests` | `python -m pytest` — 46 tests (API + intégration UI) | C18 |
-| 6 | `Train & validate model` | `python scripts/validate_model.py` — réentraîne (SMOTE + XGBoost) et vérifie le F1-score contre un seuil minimal (gate qualité) | C13 |
+| 6 | `Train & validate model` | `python scripts/validate_model.py` — réentraîne (SMOTE + XGBoost) et vérifie le F0.5-score contre un seuil minimal (gate qualité, precision priorisée sur recall) | C13 |
 | 7 | `Build API Docker image` | `docker build -t waterflow2-api:<sha> .` — packaging de l'API | C19 |
 | 8 | `Build MLflow Docker image` | `docker build -f mlflow.Dockerfile -t waterflow2-mlflow:<sha> .` — packaging du service MLflow | C19 |
 | 9 | `Build Streamlit Docker image` | `docker build -f ui.Dockerfile -t waterflow2-streamlit:<sha> .` — packaging de l'UI | C19 |

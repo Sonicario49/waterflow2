@@ -7,8 +7,8 @@ from tests.conftest import BEST_THRESHOLD
 
 def test_threshold_logic_potable():
     """Test unitaire : vérifie que la logique de décision applique correctement le seuil."""
-    # Simulation d'une probabilité supérieure ou égale au seuil (0.37)
-    prob_potable = 0.40
+    # Simulation d'une probabilité supérieure ou égale au seuil (0.50)
+    prob_potable = 0.60
     prediction_result = 1 if prob_potable >= BEST_THRESHOLD else 0
 
     assert (
@@ -18,7 +18,7 @@ def test_threshold_logic_potable():
 
 def test_threshold_logic_non_potable():
     """Test unitaire : vérifie la décision en dessous du seuil."""
-    # Simulation d'une probabilité inférieure au seuil (0.37)
+    # Simulation d'une probabilité inférieure au seuil (0.50)
     prob_potable = 0.30
     prediction_result = 1 if prob_potable >= BEST_THRESHOLD else 0
 
