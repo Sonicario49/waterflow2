@@ -53,9 +53,10 @@ def main() -> int:
     y_proba = model.predict_proba(X_val)[:, 1]
 
     # Seuil de decision fixe a 0.58 (meme choix deliberement securitaire que
-    # experiment.py, cf. commentaire la-bas) : maximise le F0.5 (precision 2x
-    # plus importante que le recall) plutot qu'un balayage qui maximiserait le
-    # F1, moins adapte a un cas d'usage securitaire.
+    # experiment.py, cf. commentaire la-bas) : maximise le F0.5 (precision 4x
+    # plus pesante que le recall dans la moyenne harmonique ponderee) plutot
+    # qu'un balayage qui maximiserait le F1, moins adapte a un cas d'usage
+    # securitaire.
     best_threshold = 0.58
     y_pred = (y_proba >= best_threshold).astype(int)
     f05 = fbeta_score(y_val, y_pred, beta=0.5, zero_division=0)

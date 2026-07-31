@@ -58,21 +58,21 @@ jamais un renouvellement automatique déclenché côté client.
 **afin de** savoir immédiatement si l'eau est potable.
 
 **Contexte** : la prédiction utilise le modèle XGBoost `Production` chargé depuis MLflow, avec
-un seuil de décision fixe (`0.37`, pas le seuil par défaut de 0.5) appliqué à `predict_proba`.
+un seuil de décision fixe (`0.58`, pas le seuil par défaut de 0.5) appliqué à `predict_proba`.
 
 **Scénario d'utilisation**
 1. Sur "Panel de Test", le Client saisit ph, hardness, solids, chloramines, sulfate,
    conductivity, organic_carbon, trihalomethanes, turbidity (ou charge un échantillon du jeu
    de test).
 2. Il clique sur "Lancer la prédiction API" → `POST /api/measurements`.
-3. L'API calcule `probabilité potable = predict_proba(features)`, compare à 0.37, enregistre
+3. L'API calcule `probabilité potable = predict_proba(features)`, compare à 0.58, enregistre
    le prélèvement (`source = "manuel"`) et renvoie le verdict.
 4. Le résultat ("Potable (Safe)" / "Non Potable (Unsafe)") et la probabilité s'affichent.
 
 **Critères de validation**
 - Requête avec 9 features valides + clé API valide → `201`, réponse contient `prediction`
   (0 ou 1), `probability_potable`, `water_status`, `client_id`.
-- `probability_potable >= 0.37` ⟹ `prediction = 1` ; sinon `prediction = 0`.
+- `probability_potable >= 0.58` ⟹ `prediction = 1` ; sinon `prediction = 0`.
 - Sans header `X-API-Key` → `401`.
 - Payload avec un nombre de features ≠ 9 → `422` (validation Pydantic).
 - Si le modèle MLflow n'a pas pu être chargé au démarrage → `503` ("Modèle ML indisponible").
@@ -223,7 +223,7 @@ du réseau et non client par client.
 
 ### US-07 — Consulter les métriques du modèle en Production
 
-**En tant que** Quality_Analyst, **je veux** voir les métriques (F1, accuracy, etc.) et
+**En tant que** Quality_Analyst, **je veux** voir les métriques (F0.5, accuracy, etc.) et
 paramètres du modèle actuellement en Production, **afin de** vérifier sa fiabilité avant de
 faire confiance à ses prédictions.
 
